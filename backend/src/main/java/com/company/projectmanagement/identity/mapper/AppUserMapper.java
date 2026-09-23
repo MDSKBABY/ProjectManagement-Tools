@@ -99,4 +99,13 @@ public interface AppUserMapper extends BaseMapper<AppUser> {
               AND deleted_at IS NULL
             """)
     AppUser selectActiveByUsername(@Param("username") String username);
+
+    @Select("""
+            SELECT *
+            FROM app_user
+            WHERE id = #{id}
+              AND status = 'ACTIVE'
+              AND deleted_at IS NULL
+            """)
+    AppUser selectActiveById(@Param("id") Long id);
 }

@@ -116,7 +116,7 @@ function errorMessage(reason: unknown): string {
     </p>
 
     <div class="table-scroll" :aria-busy="loading">
-      <ElTable v-loading="loading" :data="users" empty-text="暂无用户">
+      <ElTable :data="users" empty-text="暂无用户">
         <ElTableColumn prop="displayName" label="用户" min-width="180">
           <template #default="scope">
             <strong>{{ scope.row.displayName }}</strong>

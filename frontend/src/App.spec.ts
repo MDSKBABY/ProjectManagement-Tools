@@ -20,6 +20,19 @@ const adminUser = {
   permissions: ['user:manage'],
 }
 
+const projectUser = {
+  id: 2,
+  username: 'project-member',
+  displayName: '项目成员',
+  roles: ['IMPLEMENTER'],
+  permissions: ['project:read'],
+}
+
+const operationsAdmin = {
+  ...adminUser,
+  permissions: ['project:read', 'user:manage', 'audit:read'],
+}
+
 describe('App', () => {
   beforeEach(() => {
     vi.resetAllMocks()
@@ -88,5 +101,43 @@ describe('App', () => {
 
     expect(authMocks.logout).toHaveBeenCalledOnce()
     expect(wrapper.find('input[name="username"]').exists()).toBe(true)
+  })
+
+  it('opens the project workspace for a project member', async () => {
+    authMocks.getCurrentUser.mockResolvedValue(projectUser)
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          ProjectWorkspace: {
+            props: ['currentUser'],
+            template: '<section data-test="project-workspace">项目工作台</section>',
+          },
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="project-workspace"]').text()).toBe('项目工作台')
+    expect(wrapper.text()).not.toContain('当前账号没有用户管理权限')
+  })
+
+  it('shows every authorized workspace and opens audit query from global navigation', async () => {
+    authMocks.getCurrentUser.mockResolvedValue(operationsAdmin)
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          ProjectWorkspace: { template: '<section data-test="project-workspace">项目工作台</section>' },
+          UserManagement: { template: '<section data-test="user-management">用户管理</section>' },
+          AuditLogPanel: { template: '<section data-test="audit-log-panel">审计查询</section>' },
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="project-workspace"]').exists()).toBe(true)
+    await wrapper.get('[data-test="nav-audit"]').trigger('click')
+    expect(wrapper.get('[data-test="audit-log-panel"]').text()).toBe('审计查询')
   })
 })

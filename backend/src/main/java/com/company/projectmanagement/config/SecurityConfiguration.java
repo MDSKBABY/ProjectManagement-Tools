@@ -11,6 +11,7 @@ import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -94,8 +95,121 @@ public class SecurityConfiguration {
                                 "/api/auth/login")
                         .permitAll()
                         .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/audit-logs")
+                        .hasAuthority("audit:read")
                         .requestMatchers("/api/v1/admin/users", "/api/v1/admin/users/**")
                         .hasAuthority("user:manage")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/files")
+                        .hasAuthority("file:read")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/files/*/download",
+                                "/api/v1/projects/*/files/groups/*/versions")
+                        .hasAuthority("file:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/files/metadata")
+                        .hasAuthority("file:write")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/projects/*/files/*/chunks/*")
+                        .hasAuthority("file:write")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/files/*/complete")
+                        .hasAuthority("file:write")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/*/files/*/upload")
+                        .hasAuthority("file:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/deployment-assets",
+                                "/api/v1/projects/*/deployment-assets/**")
+                        .hasAuthority("deployment_asset:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/deployment-assets")
+                        .hasAuthority("deployment_asset:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/servers/*/credential")
+                        .hasAuthority("server_credential:read")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/servers/*/credential")
+                        .hasAuthority("server_credential:manage")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/servers",
+                                "/api/v1/projects/*/servers/*")
+                        .hasAuthority("server:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/servers")
+                        .hasAuthority("server:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/servers/*")
+                        .hasAuthority("server:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/servers/*")
+                        .hasAuthority("server:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/environment-fingerprints",
+                                "/api/v1/projects/*/environment-fingerprints/*")
+                        .hasAuthority("environment_fingerprint:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/environment-fingerprints")
+                        .hasAuthority("environment_fingerprint:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/environment-fingerprints/*")
+                        .hasAuthority("environment_fingerprint:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/environment-fingerprints/*")
+                        .hasAuthority("environment_fingerprint:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/deployment-solutions",
+                                "/api/v1/projects/*/deployment-solutions/*")
+                        .hasAuthority("deployment_solution:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/deployment-solutions")
+                        .hasAuthority("deployment_solution:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/deployment-solutions/*")
+                        .hasAuthority("deployment_solution:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/deployment-solutions/*")
+                        .hasAuthority("deployment_solution:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/deployment-records",
+                                "/api/v1/projects/*/deployment-records/**")
+                        .hasAuthority("deployment_record:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/deployment-records")
+                        .hasAuthority("deployment_record:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/deployment-records/*/baseline")
+                        .hasAuthority("deployment_record:write")
+                        .requestMatchers(
+                                HttpMethod.GET, "/api/v1/projects/*/members/candidates")
+                        .hasAuthority("project:manage_members")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/**")
+                        .hasAuthority("project:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/members")
+                        .hasAuthority("project:manage_members")
+                        .requestMatchers(
+                                HttpMethod.PUT, "/api/v1/projects/*/members/*")
+                        .hasAuthority("project:manage_members")
+                        .requestMatchers(
+                                HttpMethod.DELETE, "/api/v1/projects/*/members/*")
+                        .hasAuthority("project:manage_members")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects")
+                        .hasAuthority("project:create")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/projects/**")
+                        .hasAuthority("project:update")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/**")
+                        .hasAuthority("project:delete")
                         // 新接口必须在此明确声明授权规则，否则保持默认拒绝。
                         .anyRequest().denyAll())
                 .securityContext(context -> context

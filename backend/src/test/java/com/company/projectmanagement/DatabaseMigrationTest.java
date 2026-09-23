@@ -33,7 +33,7 @@ class DatabaseMigrationTest {
 
     /** 验证迁移版本、核心表和密码字段不存在明文设计。 */
     @Test
-    void migratesAnEmptyDatabaseThroughVersionTwo() {
+    void migratesAnEmptyDatabaseThroughVersionNine() {
         List<String> versions = jdbcTemplate.queryForList("""
                 SELECT version
                 FROM flyway_schema_history
@@ -46,7 +46,10 @@ class DatabaseMigrationTest {
                 WHERE table_schema = 'public'
                   AND table_name IN (
                       'app_user', 'app_role', 'app_permission', 'user_role',
-                      'role_permission', 'project', 'project_member', 'audit_log'
+                      'role_permission', 'project', 'project_member', 'audit_log',
+                      'file_asset', 'file_link', 'file_upload_chunk', 'deployment_asset',
+                      'server_record', 'server_credential', 'environment_fingerprint',
+                      'deployment_solution', 'deployment_solution_step', 'deployment_record'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -59,7 +62,7 @@ class DatabaseMigrationTest {
                 ORDER BY column_name
                 """, String.class);
 
-        assertThat(versions).containsExactly("1", "2");
+        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9");
         assertThat(tables).containsExactlyInAnyOrder(
                 "app_user",
                 "app_role",
@@ -68,11 +71,29 @@ class DatabaseMigrationTest {
                 "role_permission",
                 "project",
                 "project_member",
-                "audit_log");
+                "audit_log",
+                "file_asset",
+                "file_link",
+                "file_upload_chunk",
+                "deployment_asset",
+                "server_record",
+                "server_credential",
+                "environment_fingerprint",
+                "deployment_solution",
+                "deployment_solution_step",
+                "deployment_record");
         assertThat(passwordColumns).containsExactly("password_hash");
+        assertThat(jdbcTemplate.queryForList("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'project'
+                  AND column_name IN ('customer_name', 'tags')
+                ORDER BY column_name
+                """, String.class)).containsExactly("customer_name", "tags");
     }
 
-    /** 验证 V2 的基础角色、权限和最小授权矩阵没有漂移。 */
+    /** 验证基础授权、文件权限和部署资产权限合并后的最小授权矩阵没有漂移。 */
     @Test
     void seedsTheExpectedRolesPermissionsAndAssignments() {
         List<String> roles = jdbcTemplate.queryForList(
@@ -96,18 +117,32 @@ class DatabaseMigrationTest {
                 .containsExactly("ADMIN", "IMPLEMENTER", "PROJECT_MANAGER", "TESTER", "VISITOR");
         assertThat(permissions).containsExactly(
                 "audit:read",
+                "deployment_asset:read",
+                "deployment_asset:write",
+                "deployment_record:read",
+                "deployment_record:write",
+                "deployment_solution:read",
+                "deployment_solution:write",
+                "environment_fingerprint:read",
+                "environment_fingerprint:write",
+                "file:read",
+                "file:write",
                 "project:create",
                 "project:delete",
                 "project:manage_members",
                 "project:read",
                 "project:update",
                 "role:manage",
+                "server:read",
+                "server:write",
+                "server_credential:manage",
+                "server_credential:read",
                 "user:manage");
         assertThat(permissionCounts).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "ADMIN", 8,
-                "PROJECT_MANAGER", 5,
-                "IMPLEMENTER", 2,
-                "TESTER", 1,
-                "VISITOR", 1));
+                "ADMIN", 22,
+                "PROJECT_MANAGER", 19,
+                "IMPLEMENTER", 14,
+                "TESTER", 7,
+                "VISITOR", 7));
     }
 }

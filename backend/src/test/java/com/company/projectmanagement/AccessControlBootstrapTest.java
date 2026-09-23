@@ -82,12 +82,26 @@ class AccessControlBootstrapTest {
                 .containsExactlyInAnyOrder(
                         "ROLE_ADMIN",
                         "audit:read",
+                        "deployment_asset:read",
+                        "deployment_asset:write",
+                        "deployment_record:read",
+                        "deployment_record:write",
+                        "deployment_solution:read",
+                        "deployment_solution:write",
+                        "environment_fingerprint:read",
+                        "environment_fingerprint:write",
+                        "file:read",
+                        "file:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
                         "role:manage",
+                        "server:read",
+                        "server:write",
+                        "server_credential:manage",
+                        "server_credential:read",
                         "user:manage");
 
         assertThat(jdbcTemplate.queryForObject("""

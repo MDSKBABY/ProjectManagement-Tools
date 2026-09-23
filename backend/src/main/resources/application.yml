@@ -31,6 +31,13 @@ management:
         include: health,info
 
 app:
+  server-credential:
+    # 生产环境必须通过环境变量提供 32 字节随机密钥的 Base64，禁止写入配置文件。
+    master-key: ${SERVER_CREDENTIAL_MASTER_KEY:}
+    key-version: ${SERVER_CREDENTIAL_KEY_VERSION:v1}
+  file-storage:
+    root: ${FILE_STORAGE_ROOT:./data/files}
+    chunk-size-bytes: ${FILE_CHUNK_SIZE_BYTES:5242880}
   bootstrap-admin:
     username: ${INITIAL_ADMIN_USERNAME:}
     password: ${INITIAL_ADMIN_PASSWORD:}

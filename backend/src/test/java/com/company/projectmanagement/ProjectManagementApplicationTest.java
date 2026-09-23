@@ -94,7 +94,10 @@ class ProjectManagementApplicationTest {
                 WHERE table_schema = 'public'
                   AND table_name IN (
                       'app_user', 'app_role', 'app_permission', 'user_role',
-                      'role_permission', 'project', 'project_member', 'audit_log'
+                      'role_permission', 'project', 'project_member', 'audit_log',
+                      'file_asset', 'file_link', 'file_upload_chunk', 'deployment_asset',
+                      'server_record', 'server_credential', 'environment_fingerprint',
+                      'deployment_solution', 'deployment_solution_step'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -107,7 +110,16 @@ class ProjectManagementApplicationTest {
                 "role_permission",
                 "project",
                 "project_member",
-                "audit_log");
+                "audit_log",
+                "file_asset",
+                "file_link",
+                "file_upload_chunk",
+                "deployment_asset",
+                "server_record",
+                "server_credential",
+                "environment_fingerprint",
+                "deployment_solution",
+                "deployment_solution_step");
 
         String migrationVersion = jdbcTemplate.queryForObject("""
                 SELECT version
@@ -132,7 +144,7 @@ class ProjectManagementApplicationTest {
                   AND column_name = 'password'
                 """, Integer.class);
 
-        assertThat(migrationVersion).isEqualTo("2");
+        assertThat(migrationVersion).isEqualTo("9");
         assertThat(passwordHashColumns).isEqualTo(1);
         assertThat(plaintextPasswordColumns).isZero();
     }
@@ -146,12 +158,26 @@ class ProjectManagementApplicationTest {
                 "SELECT code FROM app_permission ORDER BY code", String.class))
                 .containsExactly(
                         "audit:read",
+                        "deployment_asset:read",
+                        "deployment_asset:write",
+                        "deployment_record:read",
+                        "deployment_record:write",
+                        "deployment_solution:read",
+                        "deployment_solution:write",
+                        "environment_fingerprint:read",
+                        "environment_fingerprint:write",
+                        "file:read",
+                        "file:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
                         "role:manage",
+                        "server:read",
+                        "server:write",
+                        "server_credential:manage",
+                        "server_credential:read",
                         "user:manage");
 
         AppUser administrator = appUserMapper.selectActiveByUsername("INITIAL-ADMIN");
@@ -170,12 +196,26 @@ class ProjectManagementApplicationTest {
         assertThat(identityAccessMapper.selectPermissionCodesByUserId(administrator.getId()))
                 .containsExactly(
                         "audit:read",
+                        "deployment_asset:read",
+                        "deployment_asset:write",
+                        "deployment_record:read",
+                        "deployment_record:write",
+                        "deployment_solution:read",
+                        "deployment_solution:write",
+                        "environment_fingerprint:read",
+                        "environment_fingerprint:write",
+                        "file:read",
+                        "file:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
                         "role:manage",
+                        "server:read",
+                        "server:write",
+                        "server_credential:manage",
+                        "server_credential:read",
                         "user:manage");
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT count(*)

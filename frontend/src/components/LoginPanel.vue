@@ -25,13 +25,11 @@ function submit(): void {
     <section class="login-intro" aria-labelledby="login-title">
       <p class="eyebrow">项目交付与实施协同</p>
       <h1 id="login-title">把项目过程留在团队里</h1>
-      <p>
-        集中管理项目成员、交付资料和实施记录。阶段 0 已接通安全登录与管理员用户管理。
-      </p>
+      <p>集中管理项目成员、交付资料和实施记录，从立项到交付都可追踪。</p>
       <ul class="login-points" aria-label="系统能力">
         <li><span aria-hidden="true">01</span>服务端会话与权限控制</li>
         <li><span aria-hidden="true">02</span>管理员用户全生命周期</li>
-        <li><span aria-hidden="true">03</span>项目能力将在下一阶段开放</li>
+        <li><span aria-hidden="true">03</span>项目与成员协作工作台</li>
       </ul>
     </section>
 
