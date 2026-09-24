@@ -3,6 +3,7 @@ package com.company.projectmanagement.identity.web;
 import com.company.projectmanagement.common.web.PageResponse;
 import com.company.projectmanagement.identity.domain.UserStatus;
 import com.company.projectmanagement.identity.service.UserAdministrationService;
+import com.company.projectmanagement.identity.service.PasswordManagementService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;
@@ -28,9 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAdministrationController {
 
     private final UserAdministrationService userAdministrationService;
+    private final PasswordManagementService passwordManagementService;
 
-    public UserAdministrationController(UserAdministrationService userAdministrationService) {
+    public UserAdministrationController(
+            UserAdministrationService userAdministrationService,
+            PasswordManagementService passwordManagementService) {
         this.userAdministrationService = userAdministrationService;
+        this.passwordManagementService = passwordManagementService;
     }
 
     /** 分页查询用户，页码从 1 开始。 */
@@ -61,5 +66,15 @@ public class UserAdministrationController {
             @Valid @RequestBody UpdateUserStatusRequest request,
             Authentication authentication) {
         return userAdministrationService.updateStatus(id, request, authentication.getName());
+    }
+
+    /** 管理员重置其他用户的密码，成功后该用户现有会话全部失效。 */
+    @PatchMapping("/{id}/password")
+    ResponseEntity<Void> resetPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ResetPasswordRequest request,
+            Authentication authentication) {
+        passwordManagementService.resetPassword(id, request, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,8 @@
 package com.company.projectmanagement.common.web;
 
+import com.company.projectmanagement.identity.security.LoginRateLimitException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,6 +25,13 @@ public class ApiExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleBadCredentials() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiErrorResponse.of("INVALID_CREDENTIALS", "用户名或密码错误"));
+    }
+
+    @ExceptionHandler(LoginRateLimitException.class)
+    ResponseEntity<ApiErrorResponse> handleLoginRateLimit(LoginRateLimitException exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.getRetryAfterSeconds()))
+                .body(ApiErrorResponse.of("LOGIN_RATE_LIMITED", exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

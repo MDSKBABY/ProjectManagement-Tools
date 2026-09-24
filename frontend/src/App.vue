@@ -2,19 +2,23 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElButton } from 'element-plus'
 
-import { getCurrentUser, login, logout } from './api/auth'
+import { changePassword, getCurrentUser, login, logout } from './api/auth'
 import { ApiError } from './api/client'
 import AuditLogPanel from './components/AuditLogPanel.vue'
 import LoginPanel from './components/LoginPanel.vue'
+import PasswordChangeDialog from './components/PasswordChangeDialog.vue'
 import ProjectWorkspace from './components/ProjectWorkspace.vue'
 import UserManagement from './components/UserManagement.vue'
-import type { CurrentUser, LoginInput } from './types'
+import type { ChangePasswordInput, CurrentUser, LoginInput } from './types'
 
 const currentUser = ref<CurrentUser | null>(null)
 const initializing = ref(true)
 const loginLoading = ref(false)
 const loginError = ref('')
 const shellError = ref('')
+const passwordDialogOpen = ref(false)
+const passwordSaving = ref(false)
+const passwordError = ref('')
 type WorkspaceSection = 'projects' | 'users' | 'audit'
 
 const activeSection = ref<WorkspaceSection>('projects')
@@ -65,6 +69,25 @@ async function handleLogout(): Promise<void> {
   }
 }
 
+async function handlePasswordChange(input: ChangePasswordInput): Promise<void> {
+  passwordSaving.value = true
+  passwordError.value = ''
+  try {
+    await changePassword(input)
+    passwordDialogOpen.value = false
+    currentUser.value = null
+  } catch (reason) {
+    passwordError.value = errorMessage(reason)
+  } finally {
+    passwordSaving.value = false
+  }
+}
+
+function openPasswordDialog(): void {
+  passwordError.value = ''
+  passwordDialogOpen.value = true
+}
+
 function errorMessage(reason: unknown): string {
   return reason instanceof ApiError ? reason.message : '请求失败，请稍后重试'
 }
@@ -88,7 +111,8 @@ function chooseInitialSection(): void {
           <strong>{{ currentUser.displayName }}</strong>
           <small>{{ currentUser.username }}</small>
         </span>
-        <ElButton link @click="handleLogout">退出</ElButton>
+        <ElButton link data-test="change-password" @click="openPasswordDialog">修改密码</ElButton>
+        <ElButton link data-test="logout" @click="handleLogout">退出</ElButton>
       </div>
     </header>
 
@@ -148,5 +172,13 @@ function chooseInitialSection(): void {
         <p>当前账号没有可用的工作台权限，请联系管理员授权。</p>
       </section>
     </main>
+
+    <PasswordChangeDialog
+      :open="passwordDialogOpen"
+      :saving="passwordSaving"
+      :error="passwordError"
+      @close="passwordDialogOpen = false"
+      @submit="handlePasswordChange"
+    />
   </div>
 </template>

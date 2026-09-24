@@ -14,9 +14,10 @@ import {
 } from 'element-plus'
 
 import { ApiError } from '../api/client'
-import { createUser, listUsers, updateUserStatus } from '../api/users'
+import { createUser, listUsers, resetUserPassword, updateUserStatus } from '../api/users'
 import type { CreateUserInput, CurrentUser, Pagination, UserStatus, UserSummary } from '../types'
 import UserCreateDialog from './UserCreateDialog.vue'
+import PasswordResetDialog from './PasswordResetDialog.vue'
 
 const props = defineProps<{ currentUser: CurrentUser }>()
 
@@ -30,6 +31,9 @@ const createOpen = ref(false)
 const saving = ref(false)
 const createError = ref('')
 const changingUserId = ref<number | null>(null)
+const resetTarget = ref<UserSummary | null>(null)
+const resetSaving = ref(false)
+const resetError = ref('')
 
 onMounted(loadUsers)
 
@@ -77,6 +81,25 @@ async function changeStatus(user: UserSummary): Promise<void> {
     error.value = errorMessage(reason)
   } finally {
     changingUserId.value = null
+  }
+}
+
+function openPasswordReset(user: UserSummary): void {
+  resetTarget.value = user
+  resetError.value = ''
+}
+
+async function submitPasswordReset(newPassword: string): Promise<void> {
+  if (!resetTarget.value) return
+  resetSaving.value = true
+  resetError.value = ''
+  try {
+    await resetUserPassword(resetTarget.value.id, newPassword)
+    resetTarget.value = null
+  } catch (reason) {
+    resetError.value = errorMessage(reason)
+  } finally {
+    resetSaving.value = false
   }
 }
 
@@ -133,22 +156,30 @@ function errorMessage(reason: unknown): string {
             </ElTag>
           </template>
         </ElTableColumn>
-        <ElTableColumn label="操作" width="120" align="right">
+        <ElTableColumn label="操作" width="210" align="right">
           <template #default="scope">
             <span v-if="scope.row.id === props.currentUser.id" class="cell-secondary">当前账号</span>
-            <ElPopconfirm
-              v-else
-              :title="scope.row.status === 'ACTIVE' ? '确认停用该用户？' : '确认启用该用户？'"
-              confirm-button-text="确认"
-              cancel-button-text="取消"
-              @confirm="changeStatus(scope.row as UserSummary)"
-            >
-              <template #reference>
-                <ElButton link :loading="changingUserId === scope.row.id">
-                  {{ scope.row.status === 'ACTIVE' ? '停用' : '启用' }}
-                </ElButton>
-              </template>
-            </ElPopconfirm>
+            <template v-else>
+              <ElButton
+                link
+                :data-test="`reset-password-${scope.row.id}`"
+                @click="openPasswordReset(scope.row as UserSummary)"
+              >
+                重置密码
+              </ElButton>
+              <ElPopconfirm
+                :title="scope.row.status === 'ACTIVE' ? '确认停用该用户？' : '确认启用该用户？'"
+                confirm-button-text="确认"
+                cancel-button-text="取消"
+                @confirm="changeStatus(scope.row as UserSummary)"
+              >
+                <template #reference>
+                  <ElButton link :loading="changingUserId === scope.row.id">
+                    {{ scope.row.status === 'ACTIVE' ? '停用' : '启用' }}
+                  </ElButton>
+                </template>
+              </ElPopconfirm>
+            </template>
           </template>
         </ElTableColumn>
         <template #empty>
@@ -174,6 +205,14 @@ function errorMessage(reason: unknown): string {
       :error="createError"
       @close="createOpen = false"
       @submit="submitCreate"
+    />
+    <PasswordResetDialog
+      :open="resetTarget !== null"
+      :saving="resetSaving"
+      :error="resetError"
+      :user="resetTarget"
+      @close="resetTarget = null"
+      @submit="submitPasswordReset"
     />
   </section>
 </template>

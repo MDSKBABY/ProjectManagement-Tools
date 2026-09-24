@@ -25,6 +25,10 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfAuthenticationStrategy;
@@ -69,11 +73,23 @@ public class SecurityConfiguration {
 
     @Bean
     SessionAuthenticationStrategy sessionAuthenticationStrategy(
-            CsrfTokenRepository csrfTokenRepository) {
-        // 登录成功后同时轮换 Session ID 和 CSRF 令牌，阻断会话固定攻击。
+            CsrfTokenRepository csrfTokenRepository,
+            SessionRegistry sessionRegistry) {
+        // 登录成功后轮换 Session ID、CSRF 令牌并登记会话，便于密码变更后统一失效。
         return new CompositeSessionAuthenticationStrategy(List.of(
                 new ChangeSessionIdAuthenticationStrategy(),
-                new CsrfAuthenticationStrategy(csrfTokenRepository)));
+                new CsrfAuthenticationStrategy(csrfTokenRepository),
+                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+    }
+
+    @Bean
+    SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean
@@ -86,6 +102,7 @@ public class SecurityConfiguration {
             HttpSecurity http,
             SecurityContextRepository securityContextRepository,
             CsrfTokenRepository csrfTokenRepository,
+            SessionRegistry sessionRegistry,
             ObjectMapper objectMapper) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
@@ -94,7 +111,8 @@ public class SecurityConfiguration {
                                 "/api/auth/csrf",
                                 "/api/auth/login")
                         .permitAll()
-                        .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
+                        .requestMatchers("/api/auth/me", "/api/auth/logout", "/api/auth/password")
+                        .authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/audit-logs")
                         .hasAuthority("audit:read")
                         .requestMatchers("/api/v1/admin/users", "/api/v1/admin/users/**")
@@ -216,6 +234,15 @@ public class SecurityConfiguration {
                         .securityContextRepository(securityContextRepository)
                         .requireExplicitSave(true))
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
+                .sessionManagement(session -> session
+                        .maximumSessions(-1)
+                        .sessionRegistry(sessionRegistry)
+                        .expiredSessionStrategy(event -> writeError(
+                                event.getResponse(),
+                                objectMapper,
+                                HttpServletResponse.SC_UNAUTHORIZED,
+                                "AUTHENTICATION_REQUIRED",
+                                "会话已失效，请重新登录")))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> writeError(
                                 response,

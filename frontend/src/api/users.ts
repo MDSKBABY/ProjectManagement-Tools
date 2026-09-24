@@ -26,3 +26,11 @@ export function updateUserStatus(id: number, status: Extract<UserStatus, 'ACTIVE
     body: JSON.stringify({ status }),
   })
 }
+
+export function resetUserPassword(id: number, newPassword: string): Promise<void> {
+  return apiRequest<void>(`/api/v1/admin/users/${id}/password`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword }),
+  })
+}

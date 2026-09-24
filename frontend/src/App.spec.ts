@@ -3,11 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from './api/client'
 import App from './App.vue'
+import PasswordChangeDialog from './components/PasswordChangeDialog.vue'
 
 const authMocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
+  changePassword: vi.fn(),
 }))
 
 vi.mock('./api/auth', () => authMocks)
@@ -96,10 +98,39 @@ describe('App', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('系统管理员')
-    await wrapper.get('.account-area button').trigger('click')
+    await wrapper.get('[data-test="logout"]').trigger('click')
     await flushPromises()
 
     expect(authMocks.logout).toHaveBeenCalledOnce()
+    expect(wrapper.find('input[name="username"]').exists()).toBe(true)
+  })
+
+  it('changes the current password and returns to the login form', async () => {
+    authMocks.getCurrentUser.mockResolvedValue(adminUser)
+    authMocks.changePassword.mockResolvedValue(undefined)
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          UserManagement: { template: '<section>用户管理</section>' },
+        },
+      },
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-test="change-password"]').trigger('click')
+    const dialog = wrapper.findComponent(PasswordChangeDialog)
+    expect(dialog.props('open')).toBe(true)
+    dialog.vm.$emit('submit', {
+      currentPassword: 'Current-password-123!',
+      newPassword: 'New-password-123!',
+    })
+    await flushPromises()
+
+    expect(authMocks.changePassword).toHaveBeenCalledWith({
+      currentPassword: 'Current-password-123!',
+      newPassword: 'New-password-123!',
+    })
     expect(wrapper.find('input[name="username"]').exists()).toBe(true)
   })
 

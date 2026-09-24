@@ -98,6 +98,42 @@ INITIAL_ADMIN_DISPLAY_NAME=系统管理员
 
 生产环境必须通过 HTTPS 访问，并设置 `SESSION_COOKIE_SECURE=true`。
 
+### 登录限流与密码管理
+
+登录失败默认按“后端看到的来源地址 + 规范化用户名”计数：15 分钟内达到 5 次失败后限制 15 分钟，响应为 `429 LOGIN_RATE_LIMITED` 并包含 `Retry-After` 响应头。可通过以下环境变量调整：
+
+```dotenv
+LOGIN_RATE_LIMIT_MAX_FAILURES=5
+LOGIN_RATE_LIMIT_WINDOW_SECONDS=900
+LOGIN_RATE_LIMIT_BLOCK_SECONDS=900
+LOGIN_RATE_LIMIT_MAX_ENTRIES=10000
+```
+
+当前登录用户可修改自己的密码：
+
+```http
+PATCH /api/auth/password
+Content-Type: application/json
+
+{
+  "currentPassword": "当前密码",
+  "newPassword": "至少 12 个字符的新密码"
+}
+```
+
+拥有 `user:manage` 权限的管理员可重置其他用户的密码：
+
+```http
+PATCH /api/v1/admin/users/{id}/password
+Content-Type: application/json
+
+{
+  "newPassword": "至少 12 个字符的临时密码"
+}
+```
+
+两种操作都会使目标用户的所有现有会话失效，分别写入 `PASSWORD_CHANGED` 和 `PASSWORD_RESET` 审计记录。管理员不能通过重置接口绕过旧密码校验来修改自己的密码。
+
 ## 管理员用户管理 API
 
 以下接口必须先登录，并且当前账号拥有 `user:manage` 权限。POST 和 PATCH 请求还必须携带当前会话的 CSRF 请求头。

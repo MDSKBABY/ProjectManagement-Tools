@@ -16,9 +16,13 @@ public class LoginAuthenticationService {
     private static final String INVALID_CREDENTIALS = "用户名或密码错误";
 
     private final AuthenticationManager authenticationManager;
+    private final LoginAttemptLimiter loginAttemptLimiter;
 
-    public LoginAuthenticationService(AuthenticationManager authenticationManager) {
+    public LoginAuthenticationService(
+            AuthenticationManager authenticationManager,
+            LoginAttemptLimiter loginAttemptLimiter) {
         this.authenticationManager = authenticationManager;
+        this.loginAttemptLimiter = loginAttemptLimiter;
     }
 
     /**
@@ -28,18 +32,29 @@ public class LoginAuthenticationService {
      * @param rawPassword 仅用于本次校验的原始密码
      * @return 已认证用户；返回前凭据会由认证管理器按配置清除
      */
-    public AuthenticatedUser authenticate(String username, String rawPassword) {
+    public AuthenticatedUser authenticate(
+            String username,
+            String rawPassword,
+            String sourceAddress) {
         if (username == null || username.isBlank() || rawPassword == null || rawPassword.isBlank()) {
             throw new BadCredentialsException(INVALID_CREDENTIALS);
         }
 
+        loginAttemptLimiter.checkAllowed(sourceAddress, username);
         try {
             Authentication result = authenticationManager.authenticate(
                     UsernamePasswordAuthenticationToken.unauthenticated(username.trim(), rawPassword));
+            loginAttemptLimiter.recordSuccess(sourceAddress, username);
             return (AuthenticatedUser) result.getPrincipal();
         } catch (AuthenticationException exception) {
+            loginAttemptLimiter.recordFailure(sourceAddress, username);
             // 不区分账号不存在、停用或密码错误，避免向攻击者泄露账号状态。
             throw new BadCredentialsException(INVALID_CREDENTIALS, exception);
         }
+    }
+
+    /** 保留给非 HTTP 调用方和现有测试的入口，仍会应用独立的限流键。 */
+    public AuthenticatedUser authenticate(String username, String rawPassword) {
+        return authenticate(username, rawPassword, "direct-call");
     }
 }

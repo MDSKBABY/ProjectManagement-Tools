@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +30,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(properties = {
         "app.bootstrap-admin.username=session-admin",
         "app.bootstrap-admin.password=Test-only-session-password-123!",
-        "app.bootstrap-admin.display-name=会话测试管理员"
+        "app.bootstrap-admin.display-name=会话测试管理员",
+        "app.login-rate-limit.max-failures=3",
+        "app.login-rate-limit.window-seconds=900",
+        "app.login-rate-limit.block-seconds=900"
 })
 @AutoConfigureMockMvc
 @Testcontainers
@@ -162,6 +166,61 @@ class AuthenticationSessionTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void rateLimitsRepeatedFailuresWithoutAffectingAnotherUsername() throws Exception {
+        MvcResult csrfResult = mockMvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isOk())
+                .andReturn();
+        MockHttpSession session = (MockHttpSession) csrfResult.getRequest().getSession(false);
+        JsonNode csrf = responseJson(csrfResult);
+
+        for (int attempt = 1; attempt < 3; attempt++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .session(session)
+                            .with(request -> {
+                                request.setRemoteAddr("192.0.2.10");
+                                return request;
+                            })
+                            .header(csrf.get("headerName").asText(), csrf.get("token").asText())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"rate-limited-user","password":"wrong-password"}
+                                    """))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"));
+        }
+
+        mockMvc.perform(post("/api/auth/login")
+                        .session(session)
+                        .with(request -> {
+                            request.setRemoteAddr("192.0.2.10");
+                            return request;
+                        })
+                        .header(csrf.get("headerName").asText(), csrf.get("token").asText())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"rate-limited-user","password":"wrong-password"}
+                                """))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"))
+                .andExpect(jsonPath("$.error.code").value("LOGIN_RATE_LIMITED"))
+                .andExpect(jsonPath("$.error.message").value("登录尝试过于频繁，请稍后再试"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .session(session)
+                        .with(request -> {
+                            request.setRemoteAddr("192.0.2.10");
+                            return request;
+                        })
+                        .header(csrf.get("headerName").asText(), csrf.get("token").asText())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"another-user","password":"wrong-password"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"));
     }
 
     /** 把响应统一解析为 JSON，避免测试重复处理字符编码和解析异常。 */

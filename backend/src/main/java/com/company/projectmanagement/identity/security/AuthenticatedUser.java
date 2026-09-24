@@ -3,6 +3,7 @@ package com.company.projectmanagement.identity.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -81,5 +82,17 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
     public void eraseCredentials() {
         // 认证完成后移除密码哈希，避免敏感凭据长期停留在 Session 或内存对象中。
         passwordHash = null;
+    }
+
+    /** SessionRegistry 使用 principal 作为键，同一用户的多次登录必须视为同一主体。 */
+    @Override
+    public boolean equals(Object other) {
+        return this == other
+                || other instanceof AuthenticatedUser that && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

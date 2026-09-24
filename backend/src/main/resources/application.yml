@@ -31,6 +31,11 @@ management:
         include: health,info
 
 app:
+  login-rate-limit:
+    max-failures: ${LOGIN_RATE_LIMIT_MAX_FAILURES:5}
+    window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:900}
+    block-seconds: ${LOGIN_RATE_LIMIT_BLOCK_SECONDS:900}
+    max-entries: ${LOGIN_RATE_LIMIT_MAX_ENTRIES:10000}
   server-credential:
     # 生产环境必须通过环境变量提供 32 字节随机密钥的 Base64，禁止写入配置文件。
     master-key: ${SERVER_CREDENTIAL_MASTER_KEY:}

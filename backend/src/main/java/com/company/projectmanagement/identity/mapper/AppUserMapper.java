@@ -51,6 +51,16 @@ public interface AppUserMapper extends BaseMapper<AppUser> {
             @Param("id") Long id,
             @Param("status") UserStatus status);
 
+    @Update("""
+            UPDATE app_user
+            SET password_hash = #{passwordHash}, updated_at = CURRENT_TIMESTAMP
+            WHERE id = #{id}
+              AND deleted_at IS NULL
+            """)
+    int updatePasswordHash(
+            @Param("id") Long id,
+            @Param("passwordHash") String passwordHash);
+
     @Select("""
             <script>
             SELECT count(*)

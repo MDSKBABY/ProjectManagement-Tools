@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createUser, listUsers, updateUserStatus } from './users'
+import { createUser, listUsers, resetUserPassword, updateUserStatus } from './users'
 
 const clientMocks = vi.hoisted(() => ({ apiRequest: vi.fn() }))
 
@@ -51,6 +51,18 @@ describe('user administration API', () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'DISABLED' }),
+    })
+  })
+
+  it('targets one user when resetting a password', async () => {
+    clientMocks.apiRequest.mockResolvedValue(undefined)
+
+    await resetUserPassword(7, 'Reset-password-123!')
+
+    expect(clientMocks.apiRequest).toHaveBeenCalledWith('/api/v1/admin/users/7/password', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: 'Reset-password-123!' }),
     })
   })
 })

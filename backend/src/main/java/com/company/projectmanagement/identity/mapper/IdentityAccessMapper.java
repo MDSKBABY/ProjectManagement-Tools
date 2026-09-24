@@ -51,6 +51,32 @@ public interface IdentityAccessMapper {
             @Param("previousStatus") UserStatus previousStatus,
             @Param("newStatus") UserStatus newStatus);
 
+    @Insert("""
+            INSERT INTO audit_log (
+                actor_user_id, action, resource_type, resource_id, outcome, details
+            ) VALUES (
+                #{actorUserId}, 'PASSWORD_CHANGED', 'USER', #{resourceId}, 'SUCCESS',
+                jsonb_build_object('username', #{username})
+            )
+            """)
+    int recordPasswordChangedAudit(
+            @Param("actorUserId") Long actorUserId,
+            @Param("resourceId") String resourceId,
+            @Param("username") String username);
+
+    @Insert("""
+            INSERT INTO audit_log (
+                actor_user_id, action, resource_type, resource_id, outcome, details
+            ) VALUES (
+                #{actorUserId}, 'PASSWORD_RESET', 'USER', #{resourceId}, 'SUCCESS',
+                jsonb_build_object('username', #{username})
+            )
+            """)
+    int recordPasswordResetAudit(
+            @Param("actorUserId") Long actorUserId,
+            @Param("resourceId") String resourceId,
+            @Param("username") String username);
+
     @Select("""
             SELECT count(*)
             FROM audit_log

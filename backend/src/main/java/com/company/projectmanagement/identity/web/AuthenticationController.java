@@ -2,6 +2,7 @@ package com.company.projectmanagement.identity.web;
 
 import com.company.projectmanagement.identity.security.AuthenticatedUser;
 import com.company.projectmanagement.identity.security.LoginAuthenticationService;
+import com.company.projectmanagement.identity.service.PasswordManagementService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,16 +34,19 @@ public class AuthenticationController {
     private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextLogoutHandler logoutHandler;
+    private final PasswordManagementService passwordManagementService;
 
     public AuthenticationController(
             LoginAuthenticationService loginAuthenticationService,
             SessionAuthenticationStrategy sessionAuthenticationStrategy,
             SecurityContextRepository securityContextRepository,
-            SecurityContextLogoutHandler logoutHandler) {
+            SecurityContextLogoutHandler logoutHandler,
+            PasswordManagementService passwordManagementService) {
         this.loginAuthenticationService = loginAuthenticationService;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.securityContextRepository = securityContextRepository;
         this.logoutHandler = logoutHandler;
+        this.passwordManagementService = passwordManagementService;
     }
 
     /** 返回前端执行写请求所需的当前 CSRF 令牌。 */
@@ -59,7 +64,7 @@ public class AuthenticationController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
         AuthenticatedUser user = loginAuthenticationService.authenticate(
-                request.username(), request.password());
+                request.username(), request.password(), httpRequest.getRemoteAddr());
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                 user, null, user.getAuthorities());
 
@@ -77,6 +82,15 @@ public class AuthenticationController {
     @GetMapping("/me")
     CurrentUserResponse currentUser(@AuthenticationPrincipal AuthenticatedUser user) {
         return CurrentUserResponse.from(user);
+    }
+
+    /** 当前用户验证旧密码后更新密码，成功后现有会话全部失效。 */
+    @PatchMapping("/password")
+    ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+        passwordManagementService.changeOwnPassword(authentication.getName(), request);
+        return ResponseEntity.noContent().build();
     }
 
     /** 清理安全上下文并使服务端会话失效。 */
