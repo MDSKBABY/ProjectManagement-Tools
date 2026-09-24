@@ -224,6 +224,94 @@ DELETE /api/v1/projects/{projectId}/members/{userId}
 
 可维护的普通角色为 `MANAGER`、`MEMBER`、`VIEWER`。`OWNER` 只能由项目创建和后续专门的负责人交接流程维护，普通成员接口不能授予、修改或移除 OWNER。只能添加正常启用的用户；重复添加返回冲突，重复移除普通成员可安全重试。添加、角色调整和移除均写入审计日志。
 
+### 统一工作项 API
+
+统一工作项首批支持任务 `TASK` 和里程碑 `MILESTONE`。查询需要 `work_item:read`，创建、修改和状态流转需要 `work_item:write`，删除需要 `work_item:delete`；同时还会检查项目成员与项目内角色。
+
+```http
+GET    /api/v1/projects/{projectId}/work-items?page=1&pageSize=20
+POST   /api/v1/projects/{projectId}/work-items
+GET    /api/v1/projects/{projectId}/work-items/{id}
+PATCH  /api/v1/projects/{projectId}/work-items/{id}
+DELETE /api/v1/projects/{projectId}/work-items/{id}
+POST   /api/v1/projects/{projectId}/work-items/{id}/status-transitions
+GET    /api/v1/projects/{projectId}/work-items/{id}/status-history
+```
+
+列表支持 `keyword`、`type`、`status`、`priority`、`assigneeId`、`plannedFrom` 和 `plannedTo` 组合筛选。创建示例：
+
+```json
+{
+  "type": "TASK",
+  "title": "准备现场部署",
+  "description": "核对服务器与安装包",
+  "priority": "HIGH",
+  "assigneeId": 123,
+  "plannedStartDate": "2026-10-01",
+  "plannedEndDate": "2026-10-03"
+}
+```
+
+工作项初始状态为 `TODO`，可流转到 `IN_PROGRESS`、`DONE` 或 `CANCELED`。状态变更必须使用独立接口，普通 PATCH 不能绕过状态机：
+
+```json
+{
+  "status": "IN_PROGRESS",
+  "comment": "已开始执行"
+}
+```
+
+项目 OWNER、MANAGER 和系统管理员可完整维护；被指派的普通成员可编辑内容和流转状态，但不能改变类型或负责人。VIEWER 只读且不能被指派。删除采用软删除，状态历史和审计日志会保留。
+
+工作项关系为有向关系，列表可用 `workItemId` 和 `type` 筛选：
+
+```http
+GET    /api/v1/projects/{projectId}/work-item-relations?page=1&pageSize=20
+POST   /api/v1/projects/{projectId}/work-item-relations
+DELETE /api/v1/projects/{projectId}/work-item-relations/{relationId}
+```
+
+```json
+{
+  "sourceWorkItemId": 10,
+  "targetWorkItemId": 11,
+  "type": "PARENT_CHILD"
+}
+```
+
+`PARENT_CHILD` 表示父项指向子项，`PRECEDES` 表示前置项指向后续项，`BLOCKS` 表示阻塞项指向被阻塞项。父子图与依赖图分别保持无环；`PRECEDES` 和 `BLOCKS` 共享同一依赖图，同方向不能重复表达。关系不能跨项目或指向自身，删除可安全重试并保留审计记录。项目成员可查看，只有 OWNER、MANAGER 和系统管理员可维护。
+
+个人提醒只对创建它的当前用户可见，支持按工作项、状态和提醒时间筛选：
+
+```http
+GET    /api/v1/projects/{projectId}/work-item-reminders?page=1&pageSize=20
+POST   /api/v1/projects/{projectId}/work-item-reminders
+POST   /api/v1/projects/{projectId}/work-item-reminders/{reminderId}/dismiss
+DELETE /api/v1/projects/{projectId}/work-item-reminders/{reminderId}
+```
+
+```json
+{
+  "workItemId": 10,
+  "remindAt": "2026-10-01T09:00:00+08:00",
+  "message": "检查现场部署清单"
+}
+```
+
+提醒时间必须晚于当前时间。关闭和删除均可安全重试，只有第一次操作会写入审计；当前切片提供站内提醒管理，不包含邮件、短信或操作系统推送。
+
+前端在“项目工作台 → 工作项”中提供：
+
+- 按关键词、类型、状态、优先级和负责人筛选的工作项列表。
+- 工作项详情、计划/实际周期、创建、编辑和软删除。
+- 受控状态流转、备注和按时间排列的状态历史。
+- 父子、前置、阻塞关系的有向创建、查看和移除。
+- 按四种状态分栏的看板，可从卡片进入详情或发起状态流转。
+- 按计划周期铺展的月历，支持切换月份并从日期进入工作项详情。
+- 仅本人可见的提醒列表，以及提醒创建、关闭和删除。
+
+页面会根据功能权限、项目角色和当前负责人隐藏不可用操作，服务端仍会对每次请求重新授权。
+
 ### 项目文件与版本 API
 
 文件接口同时检查 `file:*` 功能权限与项目成员关系。文件名只用于展示，磁盘存储键由服务端随机生成；开发环境的受控目录通过 `FILE_STORAGE_ROOT` 配置。
