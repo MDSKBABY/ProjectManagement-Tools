@@ -212,6 +212,49 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 HttpMethod.GET, "/api/v1/projects/*/members/candidates")
                         .hasAuthority("project:manage_members")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/work-items",
+                                "/api/v1/projects/*/work-items/**")
+                        .hasAuthority("work_item:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/work-items",
+                                "/api/v1/projects/*/work-items/*/status-transitions")
+                        .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.PATCH, "/api/v1/projects/*/work-items/*")
+                        .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE, "/api/v1/projects/*/work-items/*")
+                        .hasAuthority("work_item:delete")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/work-item-relations",
+                                "/api/v1/projects/*/work-item-relations/**")
+                        .hasAuthority("work_item:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/work-item-relations")
+                        .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/work-item-relations/*")
+                        .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/work-item-reminders",
+                                "/api/v1/projects/*/work-item-reminders/**")
+                        .hasAuthority("work_item:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/work-item-reminders",
+                                "/api/v1/projects/*/work-item-reminders/*/dismiss")
+                        .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/work-item-reminders/*")
+                        .hasAuthority("work_item:write")
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/**")
                         .hasAuthority("project:read")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/members")

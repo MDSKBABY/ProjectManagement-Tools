@@ -102,7 +102,10 @@ class AccessControlBootstrapTest {
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
-                        "user:manage");
+                        "user:manage",
+                        "work_item:delete",
+                        "work_item:read",
+                        "work_item:write");
 
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT assigned_by IS NULL

@@ -33,7 +33,7 @@ class DatabaseMigrationTest {
 
     /** 验证迁移版本、核心表和密码字段不存在明文设计。 */
     @Test
-    void migratesAnEmptyDatabaseThroughVersionNine() {
+    void migratesAnEmptyDatabaseThroughVersionTwelve() {
         List<String> versions = jdbcTemplate.queryForList("""
                 SELECT version
                 FROM flyway_schema_history
@@ -49,7 +49,9 @@ class DatabaseMigrationTest {
                       'role_permission', 'project', 'project_member', 'audit_log',
                       'file_asset', 'file_link', 'file_upload_chunk', 'deployment_asset',
                       'server_record', 'server_credential', 'environment_fingerprint',
-                      'deployment_solution', 'deployment_solution_step', 'deployment_record'
+                      'deployment_solution', 'deployment_solution_step', 'deployment_record',
+                      'work_item', 'work_item_status_log', 'work_item_relation',
+                      'work_item_reminder'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -62,7 +64,8 @@ class DatabaseMigrationTest {
                 ORDER BY column_name
                 """, String.class);
 
-        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9");
+        assertThat(versions).containsExactly(
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
         assertThat(tables).containsExactlyInAnyOrder(
                 "app_user",
                 "app_role",
@@ -81,7 +84,11 @@ class DatabaseMigrationTest {
                 "environment_fingerprint",
                 "deployment_solution",
                 "deployment_solution_step",
-                "deployment_record");
+                "deployment_record",
+                "work_item",
+                "work_item_status_log",
+                "work_item_relation",
+                "work_item_reminder");
         assertThat(passwordColumns).containsExactly("password_hash");
         assertThat(jdbcTemplate.queryForList("""
                 SELECT column_name
@@ -137,12 +144,15 @@ class DatabaseMigrationTest {
                 "server:write",
                 "server_credential:manage",
                 "server_credential:read",
-                "user:manage");
+                "user:manage",
+                "work_item:delete",
+                "work_item:read",
+                "work_item:write");
         assertThat(permissionCounts).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "ADMIN", 22,
-                "PROJECT_MANAGER", 19,
-                "IMPLEMENTER", 14,
-                "TESTER", 7,
-                "VISITOR", 7));
+                "ADMIN", 25,
+                "PROJECT_MANAGER", 22,
+                "IMPLEMENTER", 16,
+                "TESTER", 9,
+                "VISITOR", 8));
     }
 }

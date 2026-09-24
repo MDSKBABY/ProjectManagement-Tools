@@ -97,7 +97,9 @@ class ProjectManagementApplicationTest {
                       'role_permission', 'project', 'project_member', 'audit_log',
                       'file_asset', 'file_link', 'file_upload_chunk', 'deployment_asset',
                       'server_record', 'server_credential', 'environment_fingerprint',
-                      'deployment_solution', 'deployment_solution_step'
+                      'deployment_solution', 'deployment_solution_step', 'deployment_record',
+                      'work_item', 'work_item_status_log', 'work_item_relation',
+                      'work_item_reminder'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -119,7 +121,12 @@ class ProjectManagementApplicationTest {
                 "server_credential",
                 "environment_fingerprint",
                 "deployment_solution",
-                "deployment_solution_step");
+                "deployment_solution_step",
+                "deployment_record",
+                "work_item",
+                "work_item_status_log",
+                "work_item_relation",
+                "work_item_reminder");
 
         String migrationVersion = jdbcTemplate.queryForObject("""
                 SELECT version
@@ -144,7 +151,7 @@ class ProjectManagementApplicationTest {
                   AND column_name = 'password'
                 """, Integer.class);
 
-        assertThat(migrationVersion).isEqualTo("9");
+        assertThat(migrationVersion).isEqualTo("12");
         assertThat(passwordHashColumns).isEqualTo(1);
         assertThat(plaintextPasswordColumns).isZero();
     }
@@ -178,7 +185,10 @@ class ProjectManagementApplicationTest {
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
-                        "user:manage");
+                        "user:manage",
+                        "work_item:delete",
+                        "work_item:read",
+                        "work_item:write");
 
         AppUser administrator = appUserMapper.selectActiveByUsername("INITIAL-ADMIN");
 
@@ -216,7 +226,10 @@ class ProjectManagementApplicationTest {
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
-                        "user:manage");
+                        "user:manage",
+                        "work_item:delete",
+                        "work_item:read",
+                        "work_item:write");
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT count(*)
                 FROM audit_log
