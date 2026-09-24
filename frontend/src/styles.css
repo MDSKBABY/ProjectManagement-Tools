@@ -623,6 +623,405 @@ a {
   font-size: 1.25rem;
 }
 
+.subpanel-heading > div > p:last-child:not(.section-label) {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.work-item-filter-grid {
+  display: grid;
+  align-items: end;
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  grid-template-columns: minmax(13rem, 1.5fr) repeat(4, minmax(8rem, 0.75fr)) auto;
+  gap: 0.6rem;
+}
+
+.work-item-view-switcher {
+  display: flex;
+  padding: 0 2rem 1rem;
+  gap: 0.5rem;
+}
+
+.work-item-view {
+  padding: 1rem 2rem 1.5rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.work-item-board {
+  display: grid;
+  min-width: 58rem;
+  grid-template-columns: repeat(4, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.board-column {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: #f8fafc;
+}
+
+.board-column > header,
+.board-card-heading,
+.reminder-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.board-column > header h3,
+.calendar-toolbar h3,
+.work-item-reminders h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.board-column > header span,
+.board-card-heading > span {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.board-card-list {
+  display: grid;
+  margin-top: 0.75rem;
+  gap: 0.65rem;
+}
+
+.board-card {
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.board-card:hover,
+.board-card:focus-visible {
+  border-color: #9bb9dc;
+  outline: none;
+  box-shadow: 0 4px 12px rgb(15 41 70 / 8%);
+}
+
+.board-card > strong {
+  display: block;
+  margin-top: 0.65rem;
+  overflow-wrap: anywhere;
+}
+
+.board-card > p {
+  margin: 0.5rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
+.calendar-toolbar {
+  display: flex;
+  min-width: 48rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.work-item-calendar {
+  display: grid;
+  min-width: 48rem;
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  grid-template-columns: repeat(7, minmax(6.5rem, 1fr));
+}
+
+.calendar-weekday,
+.calendar-day {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: #ffffff;
+}
+
+.calendar-weekday {
+  padding: 0.55rem;
+  color: var(--color-muted);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.calendar-day {
+  min-height: 7rem;
+  padding: 0.5rem;
+}
+
+.calendar-day > span {
+  color: #344054;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.calendar-day.muted {
+  background: #f7f8fa;
+}
+
+.calendar-day.muted > span {
+  color: #a0a8b5;
+}
+
+.calendar-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.25rem 0;
+  border: 0;
+  color: #194f86;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+.work-item-reminders {
+  padding: 1.5rem 2rem 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.work-item-reminders .trace-section-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
+.reminder-list {
+  display: grid;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+  gap: 0.6rem;
+}
+
+.reminder-list > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  gap: 1rem;
+}
+
+.reminder-heading {
+  justify-content: flex-start;
+}
+
+.reminder-list p {
+  margin: 0.35rem 0;
+  color: #344054;
+}
+
+.reminder-list small {
+  color: var(--color-muted);
+}
+
+.reminder-actions {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.work-item-detail {
+  padding: 1.5rem 2rem 2rem;
+  border-top: 1px solid var(--color-border);
+  background: #fbfcfe;
+}
+
+.work-item-detail-heading,
+.trace-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.work-item-detail-heading h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.work-item-summary-grid {
+  display: grid;
+  margin-top: 1.25rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.work-item-summary-grid > div {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+}
+
+.work-item-summary-grid span,
+.work-item-summary-grid strong {
+  display: block;
+}
+
+.work-item-summary-grid span {
+  margin-bottom: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.work-item-summary-grid strong {
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+}
+
+.work-item-description {
+  margin: 1rem 0 0;
+  padding: 1rem;
+  border-left: 3px solid #bfd3ee;
+  color: #344054;
+  background: #f3f7fc;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.work-item-trace-grid {
+  display: grid;
+  margin-top: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.work-item-trace-grid > section {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+}
+
+.work-item-trace-grid h4 {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
+.trace-section-heading h4 {
+  margin-top: 0.35rem;
+}
+
+.status-history-list,
+.relation-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.status-history-list li {
+  position: relative;
+  display: grid;
+  padding: 0 0 1.1rem 1.25rem;
+}
+
+.status-history-list li:not(:last-child)::before {
+  position: absolute;
+  top: 0.6rem;
+  bottom: -0.3rem;
+  left: 0.25rem;
+  width: 1px;
+  background: #cbd9ea;
+  content: "";
+}
+
+.history-dot {
+  position: absolute;
+  top: 0.35rem;
+  left: 0;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 1px #9bb9dc;
+}
+
+.status-history-list p {
+  margin: 0.35rem 0;
+  color: #344054;
+  font-size: 0.875rem;
+}
+
+.status-history-list small {
+  color: var(--color-muted);
+}
+
+.relation-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.relation-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-border);
+}
+
+.relation-list li > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.relation-list li span:last-child {
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+}
+
+.work-item-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.work-item-editor-grid label,
+.dialog-form-stack label {
+  display: grid;
+  color: #344054;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  gap: 0.4rem;
+}
+
+.work-item-editor-grid .full-span {
+  grid-column: 1 / -1;
+}
+
+.dialog-form-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-hint {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}
+
 .member-filter {
   display: grid;
   padding: 1rem 2rem;
@@ -940,6 +1339,14 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .work-item-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .work-item-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .instruction-grid {
     grid-template-columns: 1fr;
   }
@@ -1036,6 +1443,13 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .work-item-filter-grid,
+  .work-item-editor-grid,
+  .work-item-summary-grid,
+  .work-item-trace-grid {
+    grid-template-columns: 1fr;
+  }
+
   .record-editor-wide {
     grid-column: auto;
   }
@@ -1055,6 +1469,35 @@ a {
   .audit-filter {
     padding-right: 1.25rem;
     padding-left: 1.25rem;
+  }
+
+  .work-item-filter-grid,
+  .work-item-detail {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+
+  .work-item-view-switcher,
+  .work-item-view,
+  .work-item-reminders {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+
+  .reminder-list > li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .work-item-detail-heading,
+  .trace-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .work-item-detail .detail-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .record-heading-actions,

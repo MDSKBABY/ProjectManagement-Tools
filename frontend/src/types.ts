@@ -476,3 +476,129 @@ export interface SimilarDeployment {
   matchedFields: string[]
   differentFields: string[]
 }
+
+export type WorkItemType = 'TASK' | 'MILESTONE'
+export type WorkItemStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELED'
+export type WorkItemPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
+export type WorkItemRelationType = 'PARENT_CHILD' | 'PRECEDES' | 'BLOCKS'
+
+export interface WorkItem {
+  id: number
+  projectId: number
+  type: WorkItemType
+  title: string
+  description: string | null
+  status: WorkItemStatus
+  priority: WorkItemPriority
+  assignee: ProjectOwner | null
+  plannedStartDate: string | null
+  plannedEndDate: string | null
+  actualStartDate: string | null
+  actualEndDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WorkItemQuery {
+  page: number
+  pageSize: number
+  keyword?: string
+  type?: WorkItemType
+  status?: WorkItemStatus
+  priority?: WorkItemPriority
+  assigneeId?: number
+  plannedFrom?: string
+  plannedTo?: string
+}
+
+export interface CreateWorkItemInput {
+  type: WorkItemType
+  title: string
+  description?: string
+  priority?: WorkItemPriority
+  assigneeId?: number
+  plannedStartDate?: string
+  plannedEndDate?: string
+}
+
+export interface UpdateWorkItemInput {
+  type?: WorkItemType
+  title?: string
+  description?: string | null
+  priority?: WorkItemPriority
+  assigneeId?: number | null
+  plannedStartDate?: string | null
+  plannedEndDate?: string | null
+}
+
+export interface TransitionWorkItemStatusInput {
+  status: WorkItemStatus
+  comment?: string
+}
+
+export interface WorkItemStatusLog {
+  id: number
+  fromStatus: WorkItemStatus | null
+  toStatus: WorkItemStatus
+  comment: string | null
+  changedBy: ProjectOwner
+  changedAt: string
+}
+
+export interface WorkItemRelationEndpoint {
+  id: number
+  title: string
+  type: WorkItemType
+  status: WorkItemStatus
+}
+
+export interface WorkItemRelation {
+  id: number
+  projectId: number
+  type: WorkItemRelationType
+  source: WorkItemRelationEndpoint
+  target: WorkItemRelationEndpoint
+  createdBy: ProjectOwner
+  createdAt: string
+}
+
+export interface WorkItemRelationQuery {
+  page: number
+  pageSize: number
+  workItemId?: number
+  type?: WorkItemRelationType
+}
+
+export interface CreateWorkItemRelationInput {
+  sourceWorkItemId: number
+  targetWorkItemId: number
+  type: WorkItemRelationType
+}
+
+export type WorkItemReminderStatus = 'PENDING' | 'DISMISSED'
+
+export interface WorkItemReminder {
+  id: number
+  projectId: number
+  workItem: WorkItemRelationEndpoint
+  remindAt: string
+  message: string | null
+  status: WorkItemReminderStatus
+  createdAt: string
+  dismissedAt: string | null
+}
+
+export interface WorkItemReminderQuery {
+  page: number
+  pageSize: number
+  workItemId?: number
+  status?: WorkItemReminderStatus
+  from?: string
+  to?: string
+}
+
+export interface CreateWorkItemReminderInput {
+  workItemId: number
+  remindAt: string
+  message?: string
+}

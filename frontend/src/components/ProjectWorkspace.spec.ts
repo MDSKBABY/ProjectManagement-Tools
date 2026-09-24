@@ -174,4 +174,41 @@ describe('ProjectWorkspace', () => {
       'data-project-id': '7', 'data-can-write': 'false',
     })
   })
+
+  it('shows the work item module with independent read, write and delete permissions', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      props: {
+        currentUser: {
+          ...currentUser,
+          roles: ['ADMIN'],
+          permissions: [
+            ...currentUser.permissions,
+            'work_item:read',
+            'work_item:write',
+            'work_item:delete',
+          ],
+        },
+      },
+      global: {
+        stubs: {
+          WorkItemPanel: {
+            props: ['projectId', 'currentUserId', 'isAdministrator', 'canWrite', 'canDelete'],
+            template: '<div data-test="work-item-panel" :data-project-id="projectId" :data-user-id="currentUserId" :data-admin="isAdministrator" :data-can-write="canWrite" :data-can-delete="canDelete" />',
+          },
+        },
+      },
+    })
+    await flushPromises()
+    wrapper.findComponent({ name: 'ElTable' }).vm.$emit('current-change', project)
+    await flushPromises()
+    await wrapper.get('[data-test="project-module-work-items"]').trigger('click')
+
+    expect(wrapper.get('[data-test="work-item-panel"]').attributes()).toMatchObject({
+      'data-project-id': '7',
+      'data-user-id': '1',
+      'data-admin': 'true',
+      'data-can-write': 'true',
+      'data-can-delete': 'true',
+    })
+  })
 })

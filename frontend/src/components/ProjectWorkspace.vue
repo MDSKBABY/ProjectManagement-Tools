@@ -31,6 +31,7 @@ import ProjectEditorDialog from './ProjectEditorDialog.vue'
 import ProjectFilePanel from './ProjectFilePanel.vue'
 import ProjectMemberManagement from './ProjectMemberManagement.vue'
 import ServerInventoryPanel from './ServerInventoryPanel.vue'
+import WorkItemPanel from './WorkItemPanel.vue'
 
 const props = defineProps<{ currentUser: CurrentUser }>()
 
@@ -43,6 +44,7 @@ type ProjectModule =
   | 'fingerprints'
   | 'solutions'
   | 'records'
+  | 'work-items'
 
 const projects = ref<Project[]>([])
 const pagination = reactive<Pagination>({ page: 1, pageSize: 20, totalItems: 0, totalPages: 0 })
@@ -92,6 +94,9 @@ const canReadDeploymentRecords = computed(() =>
 const canWriteDeploymentRecords = computed(() =>
   props.currentUser.permissions.includes('deployment_record:write'),
 )
+const canReadWorkItems = computed(() => props.currentUser.permissions.includes('work_item:read'))
+const canWriteWorkItems = computed(() => props.currentUser.permissions.includes('work_item:write'))
+const canDeleteWorkItems = computed(() => props.currentUser.permissions.includes('work_item:delete'))
 const isSelectedProjectOwnerOrAdmin = computed(() =>
   props.currentUser.roles.includes('ADMIN') ||
   selectedProject.value?.owner.id === props.currentUser.id,
@@ -109,6 +114,7 @@ const projectModules = computed<Array<{ key: ProjectModule; label: string }>>(()
     { key: 'overview', label: '概览' },
     { key: 'members', label: '成员' },
   ]
+  if (canReadWorkItems.value) modules.push({ key: 'work-items', label: '工作项' })
   if (canReadFiles.value) modules.push({ key: 'files', label: '文件' })
   if (canReadDeploymentAssets.value) modules.push({ key: 'assets', label: '部署资产' })
   if (canReadServers.value) modules.push({ key: 'servers', label: '服务器' })
@@ -351,6 +357,15 @@ function errorMessage(reason: unknown): string {
       v-if="selectedProject && activeProjectModule === 'members'"
       :project-id="selectedProject.id"
       :can-manage="canManageMembers"
+    />
+
+    <WorkItemPanel
+      v-if="selectedProject && activeProjectModule === 'work-items' && canReadWorkItems"
+      :project-id="selectedProject.id"
+      :current-user-id="currentUser.id"
+      :is-administrator="currentUser.roles.includes('ADMIN')"
+      :can-write="canWriteWorkItems"
+      :can-delete="canDeleteWorkItems"
     />
 
     <ProjectFilePanel
