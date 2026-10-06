@@ -26,12 +26,17 @@ import type {
 import DeploymentAssetPanel from './DeploymentAssetPanel.vue'
 import DeploymentRecordPanel from './DeploymentRecordPanel.vue'
 import DeploymentSolutionPanel from './DeploymentSolutionPanel.vue'
+import DailyReportPanel from './DailyReportPanel.vue'
+import DeliveryRecordsPanel from './DeliveryRecordsPanel.vue'
+import ProjectLifecyclePanel from './ProjectLifecyclePanel.vue'
 import EnvironmentFingerprintPanel from './EnvironmentFingerprintPanel.vue'
+import KnowledgeArticlePanel from './KnowledgeArticlePanel.vue'
 import ProjectEditorDialog from './ProjectEditorDialog.vue'
 import ProjectFilePanel from './ProjectFilePanel.vue'
 import ProjectMemberManagement from './ProjectMemberManagement.vue'
 import ServerInventoryPanel from './ServerInventoryPanel.vue'
 import WorkItemPanel from './WorkItemPanel.vue'
+import WeeklyReportPanel from './WeeklyReportPanel.vue'
 
 const props = defineProps<{ currentUser: CurrentUser }>()
 
@@ -45,6 +50,16 @@ type ProjectModule =
   | 'solutions'
   | 'records'
   | 'work-items'
+  | 'knowledge'
+  | 'daily-reports'
+  | 'weekly-reports'
+  | 'vendors'
+  | 'meetings'
+  | 'design-assets'
+  | 'lifecycle'
+
+type ProjectModuleGroup = 'collaboration' | 'process' | 'delivery'
+type ProjectModuleItem = { key: ProjectModule; label: string; group: ProjectModuleGroup }
 
 const projects = ref<Project[]>([])
 const pagination = reactive<Pagination>({ page: 1, pageSize: 20, totalItems: 0, totalPages: 0 })
@@ -97,6 +112,34 @@ const canWriteDeploymentRecords = computed(() =>
 const canReadWorkItems = computed(() => props.currentUser.permissions.includes('work_item:read'))
 const canWriteWorkItems = computed(() => props.currentUser.permissions.includes('work_item:write'))
 const canDeleteWorkItems = computed(() => props.currentUser.permissions.includes('work_item:delete'))
+const canReadKnowledge = computed(() =>
+  props.currentUser.permissions.includes('knowledge_article:read'),
+)
+const canWriteKnowledge = computed(() =>
+  props.currentUser.permissions.includes('knowledge_article:write'),
+)
+const canReviewKnowledge = computed(() =>
+  props.currentUser.permissions.includes('knowledge_article:review'),
+)
+const canReadDailyReports = computed(() =>
+  props.currentUser.permissions.includes('daily_report:read'),
+)
+const canWriteDailyReports = computed(() =>
+  props.currentUser.permissions.includes('daily_report:write'),
+)
+const canConfirmDailyReports = computed(() =>
+  props.currentUser.permissions.includes('daily_report:confirm'),
+)
+const canReadWeeklyReports = computed(() => props.currentUser.permissions.includes('weekly_report:read'))
+const canWriteWeeklyReports = computed(() => props.currentUser.permissions.includes('weekly_report:write'))
+const canConfirmWeeklyReports = computed(() => props.currentUser.permissions.includes('weekly_report:confirm'))
+const canReadVendors = computed(() => props.currentUser.permissions.includes('vendor_record:read'))
+const canWriteVendors = computed(() => props.currentUser.permissions.includes('vendor_record:write'))
+const canReadMeetings = computed(() => props.currentUser.permissions.includes('meeting_record:read'))
+const canWriteMeetings = computed(() => props.currentUser.permissions.includes('meeting_record:write'))
+const canReadDesigns = computed(() => props.currentUser.permissions.includes('design_asset:read'))
+const canWriteDesigns = computed(() => props.currentUser.permissions.includes('design_asset:write'))
+const canReadLifecycle = computed(() => props.currentUser.permissions.includes('project_lifecycle:read'))
 const isSelectedProjectOwnerOrAdmin = computed(() =>
   props.currentUser.roles.includes('ADMIN') ||
   selectedProject.value?.owner.id === props.currentUser.id,
@@ -109,19 +152,41 @@ const canManageServerCredential = computed(() =>
   isSelectedProjectOwnerOrAdmin.value &&
   props.currentUser.permissions.includes('server_credential:manage'),
 )
-const projectModules = computed<Array<{ key: ProjectModule; label: string }>>(() => {
-  const modules: Array<{ key: ProjectModule; label: string }> = [
-    { key: 'overview', label: '概览' },
-    { key: 'members', label: '成员' },
+const projectModuleGroupLabels: Record<ProjectModuleGroup, string> = {
+  collaboration: '项目协作',
+  process: '过程沉淀',
+  delivery: '交付部署',
+}
+
+const projectModules = computed<ProjectModuleItem[]>(() => {
+  const modules: ProjectModuleItem[] = [
+    { key: 'overview', label: '概览', group: 'collaboration' },
+    { key: 'members', label: '成员', group: 'collaboration' },
   ]
-  if (canReadWorkItems.value) modules.push({ key: 'work-items', label: '工作项' })
-  if (canReadFiles.value) modules.push({ key: 'files', label: '文件' })
-  if (canReadDeploymentAssets.value) modules.push({ key: 'assets', label: '部署资产' })
-  if (canReadServers.value) modules.push({ key: 'servers', label: '服务器' })
-  if (canReadEnvironmentFingerprints.value) modules.push({ key: 'fingerprints', label: '环境指纹' })
-  if (canReadDeploymentSolutions.value) modules.push({ key: 'solutions', label: '部署方案' })
-  if (canReadDeploymentRecords.value) modules.push({ key: 'records', label: '部署记录' })
+  if (canReadWorkItems.value) modules.push({ key: 'work-items', label: '工作项', group: 'collaboration' })
+  if (canReadLifecycle.value) modules.push({ key: 'lifecycle', label: '全周期', group: 'collaboration' })
+  if (canReadKnowledge.value) modules.push({ key: 'knowledge', label: '技术知识', group: 'process' })
+  if (canReadDailyReports.value) modules.push({ key: 'daily-reports', label: '日报', group: 'process' })
+  if (canReadWeeklyReports.value) modules.push({ key: 'weekly-reports', label: '周报', group: 'process' })
+  if (canReadMeetings.value) modules.push({ key: 'meetings', label: '会议培训', group: 'process' })
+  if (canReadDesigns.value) modules.push({ key: 'design-assets', label: '设计资料', group: 'process' })
+  if (canReadFiles.value) modules.push({ key: 'files', label: '文件', group: 'process' })
+  if (canReadVendors.value) modules.push({ key: 'vendors', label: '厂商接口', group: 'delivery' })
+  if (canReadDeploymentAssets.value) modules.push({ key: 'assets', label: '部署资产', group: 'delivery' })
+  if (canReadServers.value) modules.push({ key: 'servers', label: '服务器', group: 'delivery' })
+  if (canReadEnvironmentFingerprints.value) modules.push({ key: 'fingerprints', label: '环境指纹', group: 'delivery' })
+  if (canReadDeploymentSolutions.value) modules.push({ key: 'solutions', label: '部署方案', group: 'delivery' })
+  if (canReadDeploymentRecords.value) modules.push({ key: 'records', label: '部署记录', group: 'delivery' })
   return modules
+})
+const projectModuleGroups = computed(() => {
+  return (Object.keys(projectModuleGroupLabels) as ProjectModuleGroup[])
+    .map((key) => ({
+      key,
+      label: projectModuleGroupLabels[key],
+      modules: projectModules.value.filter((module) => module.group === key),
+    }))
+    .filter((group) => group.modules.length > 0)
 })
 
 onMounted(loadProjects)
@@ -151,6 +216,10 @@ async function loadProjects(page = pagination.page): Promise<void> {
 function selectProject(project: Project | null): void {
   selectedProject.value = project
   activeProjectModule.value = 'overview'
+}
+
+function returnToProjectList(): void {
+  selectProject(null)
 }
 
 function openCreate(): void {
@@ -227,8 +296,9 @@ function errorMessage(reason: unknown): string {
 </script>
 
 <template>
-  <section class="panel" aria-labelledby="projects-title">
-    <div class="panel-heading">
+  <section class="panel project-workspace-panel" aria-labelledby="projects-title">
+    <div v-if="!selectedProject" class="project-list-view" data-test="project-list-view">
+      <div class="panel-heading">
       <div>
         <p class="section-label">项目空间</p>
         <h1 id="projects-title">项目工作台</h1>
@@ -291,6 +361,18 @@ function errorMessage(reason: unknown): string {
             {{ scope.row.startDate || '未设置' }} — {{ scope.row.endDate || '未设置' }}
           </template>
         </ElTableColumn>
+        <ElTableColumn label="操作" width="96" fixed="right">
+          <template #default="scope">
+            <ElButton
+              link
+              type="primary"
+              :data-test="`enter-project-${scope.row.id}`"
+              @click.stop="selectProject(scope.row as Project)"
+            >
+              进入项目
+            </ElButton>
+          </template>
+        </ElTableColumn>
         <template #empty>
           <ElEmpty description="没有符合条件的项目" :image-size="72" />
         </template>
@@ -307,19 +389,64 @@ function errorMessage(reason: unknown): string {
       :total="pagination.totalItems"
       @current-change="loadProjects"
     />
+    </div>
 
-    <nav v-if="selectedProject" class="project-module-nav" aria-label="项目模块导航">
-      <button
-        v-for="module in projectModules"
-        :key="module.key"
-        type="button"
-        :data-test="`project-module-${module.key}`"
-        :class="{ active: activeProjectModule === module.key }"
-        @click="activeProjectModule = module.key"
-      >
-        {{ module.label }}
-      </button>
-    </nav>
+    <div v-else class="project-workspace-view">
+      <header class="project-workspace-header">
+        <div>
+          <button
+            type="button"
+            class="back-to-projects"
+            data-test="back-to-projects"
+            @click="returnToProjectList"
+          >
+            ← 返回项目列表
+          </button>
+          <p class="project-breadcrumb">项目工作台 / {{ selectedProject.name }}</p>
+          <h1 id="projects-title">{{ selectedProject.name }}</h1>
+        </div>
+        <div class="detail-actions">
+          <ElButton v-if="canUpdate" @click="openEdit(selectedProject)">编辑项目</ElButton>
+          <ElPopconfirm
+            v-if="canDelete"
+            title="确认删除该项目？项目将被归档隐藏。"
+            confirm-button-text="确认删除"
+            cancel-button-text="取消"
+            @confirm="removeSelectedProject"
+          >
+            <template #reference>
+              <ElButton type="danger" plain :loading="deleting">删除项目</ElButton>
+            </template>
+          </ElPopconfirm>
+        </div>
+      </header>
+
+      <div class="project-workspace-layout">
+        <aside class="project-context-sidebar">
+          <div class="project-context-card">
+            <span>当前项目</span>
+            <strong>{{ selectedProject.name }}</strong>
+            <small>{{ selectedProject.code }}</small>
+          </div>
+          <nav :aria-label="`${selectedProject.name}项目模块`">
+            <section v-for="group in projectModuleGroups" :key="group.key" class="project-menu-group">
+              <h2>{{ group.label }}</h2>
+              <button
+                v-for="module in group.modules"
+                :key="module.key"
+                type="button"
+                :data-test="`project-module-${module.key}`"
+                :class="{ active: activeProjectModule === module.key }"
+                :aria-current="activeProjectModule === module.key ? 'page' : undefined"
+                @click="activeProjectModule = module.key"
+              >
+                {{ module.label }}
+              </button>
+            </section>
+          </nav>
+        </aside>
+
+        <main class="project-module-content">
 
     <section
       v-if="selectedProject && activeProjectModule === 'overview'"
@@ -337,20 +464,6 @@ function errorMessage(reason: unknown): string {
           <div><dt>标签</dt><dd>{{ selectedProject.tags.join('、') || '未设置' }}</dd></div>
         </dl>
       </div>
-      <div class="detail-actions">
-        <ElButton v-if="canUpdate" @click="openEdit(selectedProject)">编辑项目</ElButton>
-        <ElPopconfirm
-          v-if="canDelete"
-          title="确认删除该项目？项目将被归档隐藏。"
-          confirm-button-text="确认删除"
-          cancel-button-text="取消"
-          @confirm="removeSelectedProject"
-        >
-          <template #reference>
-            <ElButton type="danger" plain :loading="deleting">删除项目</ElButton>
-          </template>
-        </ElPopconfirm>
-      </div>
     </section>
 
     <ProjectMemberManagement
@@ -366,6 +479,46 @@ function errorMessage(reason: unknown): string {
       :is-administrator="currentUser.roles.includes('ADMIN')"
       :can-write="canWriteWorkItems"
       :can-delete="canDeleteWorkItems"
+    />
+
+    <KnowledgeArticlePanel
+      v-if="selectedProject && activeProjectModule === 'knowledge' && canReadKnowledge"
+      :project-id="selectedProject.id"
+      :current-user-id="currentUser.id"
+      :can-write="canWriteKnowledge"
+      :can-review="canReviewKnowledge"
+    />
+
+    <DailyReportPanel
+      v-if="selectedProject && activeProjectModule === 'daily-reports' && canReadDailyReports"
+      :project-id="selectedProject.id"
+      :current-user-id="currentUser.id"
+      :can-write="canWriteDailyReports"
+      :can-confirm="canConfirmDailyReports"
+    />
+
+    <WeeklyReportPanel
+      v-if="selectedProject && activeProjectModule === 'weekly-reports' && canReadWeeklyReports"
+      :project-id="selectedProject.id"
+      :can-write="canWriteWeeklyReports"
+      :can-confirm="canConfirmWeeklyReports"
+    />
+
+    <DeliveryRecordsPanel
+      v-if="selectedProject && activeProjectModule === 'vendors' && canReadVendors"
+      :project-id="selectedProject.id" mode="vendor" :can-write="canWriteVendors"
+    />
+    <DeliveryRecordsPanel
+      v-if="selectedProject && activeProjectModule === 'meetings' && canReadMeetings"
+      :project-id="selectedProject.id" mode="meeting" :can-write="canWriteMeetings"
+    />
+    <DeliveryRecordsPanel
+      v-if="selectedProject && activeProjectModule === 'design-assets' && canReadDesigns"
+      :project-id="selectedProject.id" mode="design" :can-write="canWriteDesigns"
+    />
+    <ProjectLifecyclePanel
+      v-if="selectedProject && activeProjectModule === 'lifecycle' && canReadLifecycle"
+      :project-id="selectedProject.id"
     />
 
     <ProjectFilePanel
@@ -405,6 +558,9 @@ function errorMessage(reason: unknown): string {
       :project-id="selectedProject.id"
       :can-write="canWriteDeploymentRecords"
     />
+        </main>
+      </div>
+    </div>
 
     <ProjectEditorDialog
       :open="editorOpen"

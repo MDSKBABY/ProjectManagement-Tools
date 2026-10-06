@@ -16,6 +16,44 @@
 - pnpm 10+
 - Docker 与 Docker Compose
 
+## 快速开始测试
+
+第一次启动建议使用“Docker 运行 PostgreSQL/Valkey，本机运行后端和前端”的开发模式。完整的环境变量准备、三个终端的启动顺序、首位管理员、Ollama、自动化测试、完整容器验收和常见问题见 [本地启动与测试手册](docs/testing.md)。
+
+最短启动顺序如下，执行前必须先按手册创建并填写 `.env`：
+
+```bash
+docker compose --env-file .env -f deploy/docker-compose.dev.yml up -d postgres valkey
+```
+
+第二个终端：
+
+```bash
+set -a
+source .env
+set +a
+mvn -f backend/pom.xml spring-boot:run
+```
+
+第三个终端：
+
+```bash
+cd frontend
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+服务健康后访问 `http://127.0.0.1:5173`。
+
+## 选择启动方式
+
+本项目有两种启动方式，不要混用两套 Compose：
+
+- 日常开发：`docker-compose.dev.yml` 默认启动 PostgreSQL 和 Valkey；需要联调 AI 时用 `--profile ai` 同时启动 Ollama。后端用 Maven、前端用 pnpm 在本机启动。
+- 完整容器运行：`docker-compose.prod.yml` 构建并启动 PostgreSQL、Ollama、Spring Boot 后端和 Nginx 前端，浏览器只访问 Nginx 入口。
+
+后端 Maven 依赖和前端 pnpm 依赖会在多阶段镜像的“构建阶段”下载。最终运行镜像只保留可运行 JAR 或前端静态资源，不包含 Maven、Node.js 和开发依赖，这是预期的生产镜像结构。每次拉取新代码或切换 Git 提交后，必须重新执行 `docker compose ... build`，旧镜像不会自动包含新代码。
+
 ## 启动开发依赖
 
 1. 将 `.env.example` 复制为 `.env`。
@@ -25,6 +63,15 @@
 ```bash
 docker compose --env-file .env -f deploy/docker-compose.dev.yml up -d
 ```
+
+需要测试日报 AI 润色时：
+
+```bash
+docker compose --env-file .env -f deploy/docker-compose.dev.yml --profile ai up -d
+docker compose --env-file .env -f deploy/docker-compose.dev.yml --profile ai exec ollama ollama pull qwen2.5:3b
+```
+
+然后在本机 `.env` 设置 `OLLAMA_ENABLED=true`。AI 调用失败只返回可理解的错误，不会覆盖日报原始内容。
 
 查看服务状态：
 
@@ -476,7 +523,12 @@ pnpm build
 docker compose --env-file .env -f deploy/docker-compose.prod.yml config
 docker compose --env-file .env -f deploy/docker-compose.prod.yml build
 docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d
+docker compose --env-file .env -f deploy/docker-compose.prod.yml ps
 ```
+
+当 `postgres`、`backend`、`frontend` 都显示为 `healthy` 后，本机默认访问 `http://127.0.0.1:8080`。如果 `.env` 修改了 `APP_BIND_ADDRESS` 或 `APP_HTTP_PORT`，请使用对应地址和端口。
+
+生产 Compose 默认使用安全 Cookie，适合 HTTPS。如果只在本机临时用 HTTP 验收登录，可在本机 `.env` 中临时设置 `SESSION_COOKIE_SECURE=false`；正式环境必须恢复为 `true` 并使用 HTTPS。
 
 生产环境变量、HTTPS、首位管理员收尾、健康检查、备份恢复和回滚步骤见 [部署与运维手册](docs/deployment.md)。
 

@@ -167,6 +167,8 @@ describe('App', () => {
     })
     await flushPromises()
 
+    expect(wrapper.get('aside.system-sidebar').attributes('aria-label')).toBe('系统导航')
+    expect(wrapper.find('.application-frame').exists()).toBe(true)
     expect(wrapper.find('[data-test="project-workspace"]').exists()).toBe(true)
     await wrapper.get('[data-test="nav-audit"]').trigger('click')
     expect(wrapper.get('[data-test="audit-log-panel"]').text()).toBe('审计查询')

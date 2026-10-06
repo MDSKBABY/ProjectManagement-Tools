@@ -1,16 +1,24 @@
 # 项目建设进度
 
-> 最后更新：2026-09-24
+> 最后更新：2026-09-28
 > 用途：这是跨会话接力文件。每完成一个已确认模块，都要同步更新本文件。
 > 新会话开始顺序：先读 `AGENTS.md` → `PLAN.md` → `PROGRESS.md` → 与下一模块相关的代码。不得仅凭本文件跳过代码核对。
 
 ## 当前阶段
 
 - 当前目标：第二期“实施留痕与工作沉淀”。
-- 当前进度：阶段 0、第一期模块 1～10、上线前认证安全收口及统一工作项切片 1～4 已完成。生产 Linux 发布、TLS 与备份恢复演练仍需在目标服务器执行。
+- 当前进度：阶段 0、第一期模块 1～10、统一工作项切片 1～4，以及第二期模块 0～9 已完成开发与整体验收。
 - 用户已授权按 `docs/phase-1-implementation-plan.md` 连续开发第一期全部模块，不再逐模块等待确认；前后端按接口依赖交错推进。
 - 2026-09-20 已确认产品与架构方向：保留现有项目，参考 Plane 交互和 OpenProject 模型；详见 `docs/decisions/ADR-001-retain-current-stack-and-reference-plane-openproject.md`。
-- 当前 Git 状态：项目文件尚未提交，工作区内容由用户持续确认；未经用户明确要求不要创建提交。
+- 当前 Git 状态：远端基线最新已推送提交为 `0e8f31e`；第二期变更仍在工作区，尚未提交或推送。未经用户明确要求，后续不自动创建提交或推送。
+
+## 当前可运行交付状态
+
+- 开发 Compose 只包含 PostgreSQL 17.11 和 Valkey 9.1.2；开发时后端和前端分别在本机用 Maven 和 pnpm 运行。
+- 生产 Compose 包含 PostgreSQL、Ollama、后端和前端。后端依赖在 Maven 构建阶段下载，前端依赖在 pnpm 构建阶段安装；最终运行镜像只保留 JAR/JRE 和 Nginx/静态资源。
+- 2026-09-25 已重新构建包含第二期功能的前后端生产镜像，并用独立 Compose 项目完成空卷验收；验收容器、网络和数据卷已清理。
+- 当前没有本轮验收容器在运行。正式启动仍应使用实际 `.env` 重新执行 `docker compose --env-file .env -f deploy/docker-compose.prod.yml build` 和 `up -d`。
+- 生产 Compose 已包含 Ollama；对象存储、TLS 终止和自动备份任务仍未包含。
 
 ## 第一期模块与验收顺序
 
@@ -166,6 +174,19 @@
    - Flyway V12 新增个人工作项提醒，提醒始终绑定创建人，项目内其他成员及管理员也不能读取或操作他人的提醒。
    - 提醒支持创建、分页筛选、幂等关闭和幂等软删除；时间必须在未来，跨项目工作项统一按不存在处理，创建、关闭和删除均写入审计。
    - 前端提供个人提醒列表、新建、关闭和删除；当前为站内提醒管理，不包含邮件、短信或操作系统推送。
+25. 第二期 / 技术知识库
+   - 草稿、提交审核、通过/驳回、组合检索、附件完整性、软删除和审计已完成。
+26. 第二期 / 日报与 Ollama
+   - 原文、润色稿、工时、工作项/会议/部署关联、确认锁定和 AI 失败降级已完成。
+27. 第二期 / 周报快照
+   - 按周期汇总已确认日报、固化 JSON 快照、草稿修订和确认锁定已完成。
+28. 第二期 / 厂商接口、会议培训与设计资料
+   - 厂商联系人、接口联调、会议/培训纪要、设计资料和跨项目关联保护已完成。
+   - 接口和会议正式提交时的附件/纪要强制校验已完成。
+29. 第二期 / 项目全周期节点
+   - 里程碑、部署、会议、已确认日报/周报聚合和后端临期/延期判断已完成。
+30. 第二期 / 部署与工作台收口
+   - Flyway 已推进到 V18，工作台已加入全部第二期入口，Compose 已加入 Ollama 和模型持久卷。
 
 ## 当前关键决策
 
@@ -180,6 +201,26 @@
 - 部署资产、服务器凭据、部署方案和日报周报等专业业务保持独立模型，不与通用工作项强行合表。
 
 ## 最近验证结果
+
+- 启动与测试文档，2026-09-28：
+  - 新增 `docs/testing.md`，记录开发模式与完整容器模式的环境准备、启动顺序、首位管理员、Ollama、健康检查、手工测试路径、自动化测试、停止和排障方法。
+  - README 增加快速开始入口，部署手册增加日常测试文档链接；未修改业务代码或运行时配置。
+
+- 第二期 / 模块 1～9 与整体验收，2026-09-25：
+  - 知识库后端测试 4 项、日报 5 项、周报快照 1 项、资料类 3 项、全周期节点 1 项均通过；日报重复提交会返回明确的 409 业务错误，工作项、会议和部署记录均可关联且禁止跨项目引用。
+  - 迁移、权限、应用启动及第二期关键模块组合回归执行 34 项；其中 33 项直接通过，全周期 SQL 别名冲突修复后单独复跑通过。
+  - 在非同步临时目录执行后端全量 `mvn clean package`：107 passed，0 failed，0 errors，0 skipped，Flyway V1～V18 和可执行 JAR 打包成功。
+  - 所有 Testcontainers 集成测试在类结束时主动关闭 Spring 上下文，消除了已停止数据库上的 Hikari 后台重连；工作区 `Documents` 同步机制仍可能复制 `target` 构建产物，最终构建因此在 `/private/tmp` 干净副本验证。
+  - 前端全量执行 30 个测试文件、73 项测试，全部通过；TypeScript 检查和生产构建通过。
+  - 前端单包仍有超过 500 kB 的 Vite 性能提示，不影响构建结果。
+  - 生产 Compose 静态校验通过；重新构建前后端镜像后，以独立空数据卷启动 PostgreSQL、后端和前端，三者均为 `healthy`，数据库版本为 V18，后端健康接口、Nginx 健康接口和认证 CSRF 反向代理均通过。
+  - 本机未缓存 Ollama 镜像，本轮未下载大型模型或执行真实推理；`OLLAMA_ENABLED=false` 的失败降级和原文不覆盖已由自动化测试验证。临时容器、网络和数据卷已清理。
+
+- 第二期 / 基线验收，2026-09-24：
+  - 执行后端全量 `mvn clean package`：93 passed，0 failed，0 errors，0 skipped，JAR 打包成功；空库可顺序应用 Flyway V1～V12。
+  - 执行前端全量 `pnpm test`：26 个测试文件、65 passed；执行 `pnpm build`：TypeScript 检查与 Vite 生产构建成功。
+  - 最新前后端生产镜像构建成功；使用独立 Compose 项目和空数据卷启动后，PostgreSQL、后端、前端均健康，数据库版本为 V12，首位管理员仅创建一次，Nginx 容器内可访问前端与认证 API。
+  - 当前 Docker Desktop 未实际发布已配置的宿主机端口，容器检查显示 `HostConfig` 有端口绑定但 `NetworkSettings` 为空；不影响容器内部链路，本轮临时容器、网络和数据卷已清理，后续整体验收继续复查。
 
 - 第二期 / 统一工作项切片 4，2026-09-24：
   - 按 RED → GREEN 新增 `WorkItemReminderApiTest`、`WorkItemBoard.spec.ts`、`WorkItemCalendar.spec.ts` 和 `WorkItemReminderPanel.spec.ts`，覆盖个人隔离、权限与 CSRF、输入边界、幂等生命周期、四状态分组、月范围查询及提醒展示。
@@ -358,6 +399,8 @@
 - 环境指纹业务：`backend/src/main/java/com/company/projectmanagement/environment/service/EnvironmentFingerprintService.java`
 - 部署方案业务：`backend/src/main/java/com/company/projectmanagement/solution/service/DeploymentSolutionService.java`
 - 部署记录业务：`backend/src/main/java/com/company/projectmanagement/record/service/DeploymentRecordService.java`
+- 工作项迁移：`backend/src/main/resources/db/migration/V10__add_work_items_and_status_history.sql`、`backend/src/main/resources/db/migration/V11__add_work_item_relations.sql`、`backend/src/main/resources/db/migration/V12__add_work_item_reminders.sql`
+- 工作项业务：`backend/src/main/java/com/company/projectmanagement/workitem/service/WorkItemService.java`、`backend/src/main/java/com/company/projectmanagement/workitem/service/WorkItemRelationService.java`、`backend/src/main/java/com/company/projectmanagement/workitem/service/WorkItemReminderService.java`
 - 文件元数据接口：`backend/src/main/java/com/company/projectmanagement/file/web/ProjectFileController.java`
 - 本地文件存储边界：`backend/src/main/java/com/company/projectmanagement/file/storage/LocalFileStorage.java`
 - 管理员初始化：`backend/src/main/java/com/company/projectmanagement/identity/bootstrap/InitialAdminBootstrap.java`
@@ -389,6 +432,7 @@
 - 前端服务器接口：`frontend/src/api/servers.ts`
 - 前端环境指纹与部署方案接口：`frontend/src/api/environment-fingerprints.ts`、`frontend/src/api/deployment-solutions.ts`
 - 前端部署记录接口：`frontend/src/api/deployment-records.ts`
+- 前端工作项、关系与提醒接口：`frontend/src/api/work-items.ts`
 - 前端审计查询接口：`frontend/src/api/audit-logs.ts`
 - 登录组件：`frontend/src/components/LoginPanel.vue`
 - 用户管理组件：`frontend/src/components/UserManagement.vue`
@@ -398,6 +442,8 @@
 - 服务器档案组件：`frontend/src/components/ServerInventoryPanel.vue`
 - 环境指纹与部署方案组件：`frontend/src/components/EnvironmentFingerprintPanel.vue`、`frontend/src/components/DeploymentSolutionPanel.vue`
 - 部署记录与相似检索组件：`frontend/src/components/DeploymentRecordPanel.vue`
+- 工作项组件：`frontend/src/components/WorkItemPanel.vue`、`frontend/src/components/WorkItemBoard.vue`、`frontend/src/components/WorkItemCalendar.vue`、`frontend/src/components/WorkItemReminderPanel.vue`
+- 第二期沉淀组件：`frontend/src/components/KnowledgeArticlePanel.vue`、`frontend/src/components/DailyReportPanel.vue`、`frontend/src/components/WeeklyReportPanel.vue`、`frontend/src/components/DeliveryRecordsPanel.vue`、`frontend/src/components/ProjectLifecyclePanel.vue`
 - 审计查询组件：`frontend/src/components/AuditLogPanel.vue`
 - 前端独立测试：`frontend/src/App.spec.ts`、`frontend/src/api/client.spec.ts`、`frontend/src/api/users.spec.ts`
 - 用户管理入口：`backend/src/main/java/com/company/projectmanagement/identity/web/UserAdministrationController.java`
@@ -407,7 +453,24 @@
 
 ## 下一步建议
 
-继续完善统一工作项的提醒触达策略和跨视图筛选同步，或按业务优先级进入下一模块。目标 Linux 主机上的生产容器组启动、HTTPS、备份恢复和回滚演练仍作为上线前必做项。
+第二期已经完成开发与整体验收。下一步先由用户体验验收并决定是否提交第二期代码，再进入第三期需求确认；需要验证真实 AI 推理时，再单独拉取 Ollama 镜像和 `qwen2.5:3b` 模型。
+
+## 尚未完成
+
+### 统一工作项后续增强
+
+- 提醒目前只是站内数据管理，没有到期调度、页面弹窗、邮件、短信、操作系统推送或飞书通知。
+- 列表、看板、日历的筛选条件尚未完全统一为共享查询状态。
+- 工作项暂只支持 `TASK` 和 `MILESTONE`；需求、Bug 和客户建议类型，以及处理/验证闭环属于第三期。
+- 工作项附件、关注人/协作人和独立评论流尚未实现。
+
+### 第三期与上线交付
+
+- 飞书成员选择、个人/群通知、通知日志和失败重试。
+- 风险、应对和决策记录，以及里程碑延期/高优先级问题通知。
+- Valkey 共享 Session、共享限流与任务锁，以支持多后端实例。
+- 对象存储或共享持久卷，以支持多实例文件服务。
+- 目标 Linux 主机的最新镜像构建与实际发布，以及 HTTPS、安全扫描、备份恢复和回滚演练。
 
 ## 已知风险与待办
 
@@ -419,4 +482,15 @@
 - 部署资产当前采用不可变追加版本，没有删除或作废状态；若业务需要撤回错误版本，应后续增加显式状态与审计，不能物理覆盖历史。
 - 服务器凭据主密钥必须由部署环境安全备份；当前记录了密钥版本但尚未实现多版本轮换和批量重加密，不能直接替换生产主密钥。
 - 自动化测试存在 Mockito 动态加载 Java Agent 的未来 JDK 兼容警告，目前不影响测试结果，后续测试基础设施模块再处理。
-- 生产 Compose 已完成静态校验和本机 arm64 前后端镜像构建；容器组尚未使用正式环境变量启动，目标 Linux 架构镜像构建、TLS、备份恢复、回滚及安全扫描仍需执行。
+- 生产 Compose 已通过临时环境变量、空数据卷和内部链路验收；本机 Docker Desktop 未展示已配置的宿主机端口映射，因此本轮以容器内健康检查和 Nginx 反向代理为准。真实 Ollama 模型推理、目标 Linux 架构发布、TLS、备份恢复、回滚及安全扫描仍需在正式发布流程执行。
+
+## 界面布局改造（2026-09-28）
+
+- 参考若依 Vue 3 TypeScript 前端源码的侧边栏、顶部栏、内容间距和菜单激活样式，未引入若依路由或 Pinia 体系。
+- 系统级导航改为可折叠的左侧菜单，主内容区取消 `76rem` 宽度上限。
+- 项目列表与项目详情分离；进入项目后显示项目名称、编码和纵向分组模块菜单，并可返回项目列表。
+- 未改动后端接口、权限规则和各业务模块的数据逻辑。
+- 实际执行 `pnpm typecheck`：通过。
+- 实际执行 `pnpm test`：30 个测试文件、74 个测试全部通过。
+- 实际执行 `pnpm build`：构建成功；仍有原有的主包大于 500 kB 性能提示。
+- 真实登录后页面的视觉验收留给用户重启项目后进行。

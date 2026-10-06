@@ -105,6 +105,7 @@ public interface FileAssetMapper {
             JOIN app_user uploader ON uploader.id = asset.uploaded_by
             WHERE asset.id = #{fileAssetId}
               AND link.project_id = #{projectId}
+              AND link.business_type = 'PROJECT_DOCUMENT'
               AND asset.deleted_at IS NULL
             """)
     FileAsset selectProjectFile(

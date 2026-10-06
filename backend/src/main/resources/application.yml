@@ -43,6 +43,11 @@ app:
   file-storage:
     root: ${FILE_STORAGE_ROOT:./data/files}
     chunk-size-bytes: ${FILE_CHUNK_SIZE_BYTES:5242880}
+  ollama:
+    enabled: ${OLLAMA_ENABLED:false}
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model: ${OLLAMA_MODEL:qwen2.5:3b}
+    timeout-seconds: ${OLLAMA_TIMEOUT_SECONDS:30}
   bootstrap-admin:
     username: ${INITIAL_ADMIN_USERNAME:}
     password: ${INITIAL_ADMIN_PASSWORD:}

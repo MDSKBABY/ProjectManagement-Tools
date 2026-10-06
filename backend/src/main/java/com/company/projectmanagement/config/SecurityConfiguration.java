@@ -255,6 +255,77 @@ public class SecurityConfiguration {
                                 HttpMethod.DELETE,
                                 "/api/v1/projects/*/work-item-reminders/*")
                         .hasAuthority("work_item:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/knowledge-articles",
+                                "/api/v1/projects/*/knowledge-articles/*")
+                        .hasAuthority("knowledge_article:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/knowledge-articles/*/review")
+                        .hasAuthority("knowledge_article:review")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/knowledge-articles",
+                                "/api/v1/projects/*/knowledge-articles/*/submit")
+                        .hasAuthority("knowledge_article:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/knowledge-articles/*")
+                        .hasAuthority("knowledge_article:write")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/projects/*/knowledge-articles/*")
+                        .hasAuthority("knowledge_article:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/daily-reports",
+                                "/api/v1/projects/*/daily-reports/*")
+                        .hasAuthority("daily_report:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/daily-reports/*/confirm")
+                        .hasAuthority("daily_report:confirm")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/daily-reports",
+                                "/api/v1/projects/*/daily-reports/*/polish")
+                        .hasAuthority("daily_report:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/daily-reports/*")
+                        .hasAuthority("daily_report:write")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/weekly-reports",
+                                "/api/v1/projects/*/weekly-reports/*")
+                        .hasAuthority("weekly_report:read")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/weekly-reports/*/confirm")
+                        .hasAuthority("weekly_report:confirm")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/projects/*/weekly-reports/generate")
+                        .hasAuthority("weekly_report:write")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/projects/*/weekly-reports/*")
+                        .hasAuthority("weekly_report:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/vendors", "/api/v1/projects/*/interfaces")
+                        .hasAuthority("vendor_record:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/vendors", "/api/v1/projects/*/interfaces", "/api/v1/projects/*/interfaces/*/submit")
+                        .hasAuthority("vendor_record:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/meeting-records")
+                        .hasAuthority("meeting_record:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/meeting-records", "/api/v1/projects/*/meeting-records/*/submit")
+                        .hasAuthority("meeting_record:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/design-assets")
+                        .hasAuthority("design_asset:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/design-assets")
+                        .hasAuthority("design_asset:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/lifecycle")
+                        .hasAuthority("project_lifecycle:read")
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/**")
                         .hasAuthority("project:read")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/members")

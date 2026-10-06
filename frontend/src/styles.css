@@ -3,7 +3,7 @@
     Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   color: #172033;
-  background: #f3f5f8;
+  background: #f0f2f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --color-primary: #1f5fae;
@@ -13,6 +13,11 @@
   --color-border: #dce2ea;
   --color-muted: #667085;
   --color-danger: #b42318;
+  --sidebar-width: 12.5rem;
+  --sidebar-collapsed-width: 3.375rem;
+  --sidebar-background: #1a1f2e;
+  --sidebar-hover: #263445;
+  --sidebar-text: #bfcbd9;
 }
 
 * {
@@ -38,18 +43,170 @@ a {
   min-height: 100vh;
 }
 
+.application-frame {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  transition: grid-template-columns 0.28s;
+}
+
+.application-frame.sidebar-collapsed {
+  grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+}
+
+.application-main {
+  min-width: 0;
+}
+
 .topbar {
   position: sticky;
   z-index: 10;
   top: 0;
   display: flex;
-  min-height: 4rem;
+  min-height: 3.125rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 2rem;
+  padding: 0 1.25rem;
   border-bottom: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 1px 4px rgb(0 21 41 / 8%);
+}
+
+.public-topbar {
+  min-height: 4rem;
+  padding: 0 2rem;
+}
+
+.system-sidebar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--sidebar-text);
+  background: var(--sidebar-background);
+  box-shadow: 2px 0 8px rgb(0 0 0 / 20%);
+}
+
+.sidebar-brand {
+  display: flex;
+  height: 3.125rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.7rem;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sidebar-brand .brand-mark {
+  flex: 0 0 2rem;
+}
+
+.system-nav {
+  height: calc(100vh - 3.125rem);
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.system-nav button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  overflow: hidden;
+  border: 0;
+  color: var(--sidebar-text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.system-nav button:hover,
+.system-nav button:focus-visible {
+  color: #ffffff;
+  background: var(--sidebar-hover);
+  outline: none;
+}
+
+.system-nav button.active {
+  color: #ffffff;
+  background: rgb(64 158 255 / 20%);
+}
+
+.system-nav button.active::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: #409eff;
+  content: "";
+}
+
+.nav-icon {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 0.2rem;
+  font-size: 0.625rem;
+  font-weight: 750;
+}
+
+.sidebar-collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-collapsed .system-nav button {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-toggle {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: #5a5e66;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.15rem;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle:focus-visible {
+  background: rgb(0 0 0 / 3%);
+  outline: 2px solid rgb(64 158 255 / 30%);
+  outline-offset: -2px;
+}
+
+.current-section {
+  margin-right: auto;
+  color: #303133;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sidebar-backdrop {
+  display: none;
 }
 
 .brand {
@@ -100,59 +257,156 @@ a {
 }
 
 .workspace {
-  width: min(100% - 2rem, 76rem);
-  margin: 0 auto;
-  padding: 2.5rem 0 4rem;
+  width: 100%;
+  padding: 1.25rem;
 }
 
-.workspace-nav {
+.project-workspace-panel {
+  overflow: hidden;
+}
+
+.project-workspace-header {
   display: flex;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
+  min-height: 6.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
 
-.workspace-nav button {
-  padding: 0.75rem 1rem;
+.project-workspace-header h1 {
+  margin: 0.35rem 0 0;
+  color: #303133;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.back-to-projects {
+  padding: 0;
   border: 0;
-  border-bottom: 2px solid transparent;
-  color: var(--color-muted);
+  color: var(--color-primary);
   background: transparent;
   cursor: pointer;
+  font-size: 0.8125rem;
 }
 
-.workspace-nav button:hover,
-.workspace-nav button:focus-visible,
-.workspace-nav button.active {
+.back-to-projects:hover,
+.back-to-projects:focus-visible {
   color: var(--color-primary-dark);
-  border-bottom-color: var(--color-primary);
+  text-decoration: underline;
+  outline: none;
 }
 
-.project-module-nav {
-  display: flex;
-  overflow-x: auto;
-  padding: 0 1.25rem;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
+.project-breadcrumb {
+  margin: 0.5rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.project-workspace-layout {
+  display: grid;
+  min-height: calc(100vh - 11rem);
+  grid-template-columns: 12.5rem minmax(0, 1fr);
+}
+
+.project-context-sidebar {
+  min-width: 0;
+  border-right: 1px solid #e8eaf0;
+  background: #ffffff;
+}
+
+.project-context-card {
+  display: grid;
+  padding: 1rem;
+  border-bottom: 1px solid #e8eaf0;
+  background: #f7f9fc;
   gap: 0.25rem;
 }
 
-.project-module-nav button {
-  flex: 0 0 auto;
-  padding: 0.85rem 0.75rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
+.project-context-card span,
+.project-context-card small {
+  overflow: hidden;
   color: var(--color-muted);
-  background: transparent;
-  cursor: pointer;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.project-module-nav button:hover,
-.project-module-nav button:focus-visible,
-.project-module-nav button.active {
+.project-context-card strong {
+  overflow: hidden;
+  color: #303133;
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-context-sidebar nav {
+  max-height: calc(100vh - 17.5rem);
+  overflow-y: auto;
+  padding: 0.5rem 0 1rem;
+}
+
+.project-menu-group {
+  margin: 0;
+  padding: 0.4rem 0;
+}
+
+.project-menu-group + .project-menu-group {
+  border-top: 1px solid #edf0f5;
+}
+
+.project-menu-group h2 {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  color: #909399;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.project-menu-group button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 1rem 0 1.5rem;
+  overflow: hidden;
+  border: 0;
+  color: #606266;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-menu-group button:hover,
+.project-menu-group button:focus-visible {
   color: var(--color-primary-dark);
-  border-bottom-color: var(--color-primary);
+  background: #f5f7fa;
+  outline: none;
+}
+
+.project-menu-group button.active {
+  color: #409eff;
+  background: #ecf5ff;
+  font-weight: 600;
+}
+
+.project-menu-group button.active::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: #409eff;
+  content: "";
+}
+
+.project-module-content {
+  min-width: 0;
+  background: #ffffff;
 }
 
 .audit-filter {
@@ -198,8 +452,7 @@ a {
   justify-content: space-between;
   gap: 2rem;
   padding: 1.5rem 2rem;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
+  background: var(--color-surface);
 }
 
 .project-detail h2 {
@@ -1126,7 +1379,14 @@ a {
 .panel {
   border: 1px solid var(--color-border);
   background: var(--color-surface);
+}
+
+.login-card {
   box-shadow: 0 0.75rem 2rem rgba(23, 32, 51, 0.06);
+}
+
+.panel {
+  box-shadow: 0 1px 3px rgb(0 21 41 / 8%);
 }
 
 .login-card {
@@ -1202,12 +1462,12 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1.75rem 2rem;
+  padding: 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
 
 .panel-heading h1 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
 }
 
 .panel-heading > div > p:last-child {
@@ -1217,7 +1477,7 @@ a {
 
 .filter-bar {
   display: grid;
-  padding: 1rem 2rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface-muted);
   grid-template-columns: minmax(14rem, 1fr) 10rem auto;
@@ -1226,6 +1486,17 @@ a {
 
 .table-scroll {
   overflow-x: auto;
+}
+
+.table-scroll .el-table th.el-table__cell {
+  height: 2.5rem;
+  color: #515a6e;
+  background: #f8f8f9;
+  font-size: 0.8125rem;
+}
+
+.table-scroll .el-table td.el-table__cell {
+  padding: 0.625rem 0;
 }
 
 .cell-secondary {
@@ -1309,7 +1580,62 @@ a {
   }
 }
 
+@media (max-width: 991px) {
+  .application-frame,
+  .application-frame.sidebar-collapsed {
+    display: block;
+  }
+
+  .system-sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    transition: transform 0.28s;
+  }
+
+  .mobile-sidebar-open .system-sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-collapsed .sidebar-label {
+    display: inline;
+  }
+
+  .sidebar-collapsed .sidebar-brand {
+    justify-content: flex-start;
+    padding: 0 0.7rem;
+  }
+
+  .sidebar-collapsed .system-nav button {
+    justify-content: flex-start;
+    padding: 0 1rem;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    z-index: 19;
+    inset: 0;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: rgb(0 0 0 / 30%);
+  }
+}
+
 @media (max-width: 800px) {
+  .project-workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .project-context-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #e8eaf0;
+  }
+
+  .project-context-sidebar nav {
+    max-height: none;
+  }
+
   .login-layout {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -1361,9 +1687,12 @@ a {
     display: none;
   }
 
-  .workspace,
   .login-layout {
     width: min(100% - 1.25rem, 76rem);
+  }
+
+  .workspace {
+    padding: 0.75rem;
   }
 
   .login-layout {
@@ -1378,6 +1707,15 @@ a {
   .panel-heading {
     flex-direction: column;
     padding: 1.25rem;
+  }
+
+  .project-workspace-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-workspace-header .detail-actions {
+    flex-wrap: wrap;
   }
 
   .project-detail {

@@ -48,6 +48,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         "app.bootstrap-admin.display-name=初始管理员"
 })
 @Testcontainers
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 @AutoConfigureMockMvc
 class ProjectManagementApplicationTest {
@@ -99,7 +100,10 @@ class ProjectManagementApplicationTest {
                       'server_record', 'server_credential', 'environment_fingerprint',
                       'deployment_solution', 'deployment_solution_step', 'deployment_record',
                       'work_item', 'work_item_status_log', 'work_item_relation',
-                      'work_item_reminder'
+                      'work_item_reminder', 'knowledge_article', 'daily_report',
+                      'daily_report_work_item', 'daily_report_deployment_record',
+                      'weekly_report', 'vendor_record', 'integration_interface',
+                      'meeting_record', 'design_asset', 'daily_report_meeting_record'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -126,7 +130,11 @@ class ProjectManagementApplicationTest {
                 "work_item",
                 "work_item_status_log",
                 "work_item_relation",
-                "work_item_reminder");
+                "work_item_reminder",
+                "knowledge_article", "daily_report", "daily_report_work_item",
+                "daily_report_deployment_record", "weekly_report", "vendor_record",
+                "integration_interface", "meeting_record", "design_asset",
+                "daily_report_meeting_record");
 
         String migrationVersion = jdbcTemplate.queryForObject("""
                 SELECT version
@@ -151,7 +159,7 @@ class ProjectManagementApplicationTest {
                   AND column_name = 'password'
                 """, Integer.class);
 
-        assertThat(migrationVersion).isEqualTo("12");
+        assertThat(migrationVersion).isEqualTo("18");
         assertThat(passwordHashColumns).isEqualTo(1);
         assertThat(plaintextPasswordColumns).isZero();
     }
@@ -165,27 +173,43 @@ class ProjectManagementApplicationTest {
                 "SELECT code FROM app_permission ORDER BY code", String.class))
                 .containsExactly(
                         "audit:read",
+                        "daily_report:confirm",
+                        "daily_report:read",
+                        "daily_report:write",
                         "deployment_asset:read",
                         "deployment_asset:write",
                         "deployment_record:read",
                         "deployment_record:write",
                         "deployment_solution:read",
                         "deployment_solution:write",
+                        "design_asset:read",
+                        "design_asset:write",
                         "environment_fingerprint:read",
                         "environment_fingerprint:write",
                         "file:read",
                         "file:write",
+                        "knowledge_article:read",
+                        "knowledge_article:review",
+                        "knowledge_article:write",
+                        "meeting_record:read",
+                        "meeting_record:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
+                        "project_lifecycle:read",
                         "role:manage",
                         "server:read",
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
                         "user:manage",
+                        "vendor_record:read",
+                        "vendor_record:write",
+                        "weekly_report:confirm",
+                        "weekly_report:read",
+                        "weekly_report:write",
                         "work_item:delete",
                         "work_item:read",
                         "work_item:write");
@@ -206,27 +230,43 @@ class ProjectManagementApplicationTest {
         assertThat(identityAccessMapper.selectPermissionCodesByUserId(administrator.getId()))
                 .containsExactly(
                         "audit:read",
+                        "daily_report:confirm",
+                        "daily_report:read",
+                        "daily_report:write",
                         "deployment_asset:read",
                         "deployment_asset:write",
                         "deployment_record:read",
                         "deployment_record:write",
                         "deployment_solution:read",
                         "deployment_solution:write",
+                        "design_asset:read",
+                        "design_asset:write",
                         "environment_fingerprint:read",
                         "environment_fingerprint:write",
                         "file:read",
                         "file:write",
+                        "knowledge_article:read",
+                        "knowledge_article:review",
+                        "knowledge_article:write",
+                        "meeting_record:read",
+                        "meeting_record:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
+                        "project_lifecycle:read",
                         "role:manage",
                         "server:read",
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
                         "user:manage",
+                        "vendor_record:read",
+                        "vendor_record:write",
+                        "weekly_report:confirm",
+                        "weekly_report:read",
+                        "weekly_report:write",
                         "work_item:delete",
                         "work_item:read",
                         "work_item:write");

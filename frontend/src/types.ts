@@ -602,3 +602,147 @@ export interface CreateWorkItemReminderInput {
   remindAt: string
   message?: string
 }
+
+export type KnowledgeArticleStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
+
+export interface KnowledgeArticleSummary {
+  id: number
+  title: string
+  scenario: string
+  tags: string[]
+  status: KnowledgeArticleStatus
+  createdBy: number
+  createdByDisplayName: string
+  attachmentCount: number
+  updatedAt: string
+}
+
+export interface KnowledgeAttachment {
+  id: number
+  originalName: string
+  mediaType: string | null
+  sizeBytes: number
+}
+
+export interface KnowledgeArticle extends KnowledgeArticleSummary {
+  projectId: number
+  symptom: string
+  cause: string
+  solution: string
+  applicableConditions: string | null
+  reviewComment: string | null
+  reviewedBy: number | null
+  reviewedByDisplayName: string | null
+  reviewedAt: string | null
+  createdAt: string
+  attachments: KnowledgeAttachment[]
+}
+
+export interface KnowledgeArticleQuery {
+  page: number
+  pageSize: number
+  keyword?: string
+  status?: KnowledgeArticleStatus
+  tag?: string
+}
+
+export interface SaveKnowledgeArticleInput {
+  title: string
+  scenario: string
+  symptom: string
+  cause: string
+  solution: string
+  applicableConditions?: string
+  tags: string[]
+  attachmentIds: number[]
+}
+
+export interface ReviewKnowledgeArticleInput {
+  status: Extract<KnowledgeArticleStatus, 'APPROVED' | 'REJECTED'>
+  comment?: string
+}
+
+export type DailyReportStatus = 'DRAFT' | 'CONFIRMED'
+
+export interface DailyReportLink {
+  id: number
+  title: string
+}
+
+export interface DailyReport {
+  id: number
+  projectId: number
+  reportDate: string
+  reporterId: number
+  reporterDisplayName: string
+  originalContent: string
+  polishedContent: string | null
+  workHours: number
+  status: DailyReportStatus
+  confirmedBy: number | null
+  confirmedByDisplayName: string | null
+  confirmedAt: string | null
+  workItems: DailyReportLink[]
+  meetingRecords: DailyReportLink[]
+  deploymentRecords: DailyReportLink[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DailyReportQuery {
+  from?: string
+  to?: string
+  reporterId?: number
+}
+
+export interface SaveDailyReportInput {
+  reportDate: string
+  originalContent: string
+  polishedContent?: string
+  workHours: number
+  workItemIds: number[]
+  meetingRecordIds: number[]
+  deploymentRecordIds: number[]
+}
+
+export interface MeetingRecordSummary {
+  id: number
+  title: string
+  occurredAt: string
+  type: 'REGULAR_MEETING' | 'PRESENTATION' | 'TRAINING'
+  status: 'DRAFT' | 'SUBMITTED'
+}
+
+export interface DailyReportSnapshot {
+  reportId: number
+  reportDate: string
+  reporterId: number
+  reporterDisplayName: string
+  content: string
+  workHours: number
+}
+
+export interface WeeklyReport {
+  id: number
+  projectId: number
+  periodStart: string
+  periodEnd: string
+  content: string
+  nextWeekPlan: string | null
+  generationMethod: 'MANUAL' | 'AUTO_SUMMARY'
+  status: DailyReportStatus
+  dailySnapshots: DailyReportSnapshot[]
+  confirmedBy: number | null
+  confirmedByDisplayName: string | null
+  confirmedAt: string | null
+  createdBy: number
+  createdByDisplayName: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GenerateWeeklyReportInput {
+  periodStart: string
+  periodEnd: string
+  nextWeekPlan?: string
+}

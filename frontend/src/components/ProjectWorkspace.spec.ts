@@ -70,6 +70,27 @@ describe('ProjectWorkspace', () => {
     expect(wrapper.get('[data-test="project-editor"]').text()).toBe('项目表单')
   })
 
+  it('places project modules in a vertical menu labelled with the selected project', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      props: { currentUser },
+    })
+    await flushPromises()
+
+    wrapper.findComponent({ name: 'ElTable' }).vm.$emit('current-change', project)
+    await flushPromises()
+
+    const projectSidebar = wrapper.get('aside.project-context-sidebar')
+    expect(projectSidebar.text()).toContain('当前项目')
+    expect(projectSidebar.text()).toContain('实施项目')
+    expect(projectSidebar.text()).toContain('PM-007')
+    expect(projectSidebar.get('nav').attributes('aria-label')).toBe('实施项目项目模块')
+    expect(projectSidebar.get('[data-test="project-module-overview"]').classes()).toContain('active')
+    expect(wrapper.find('[data-test="project-list-view"]').exists()).toBe(false)
+
+    await wrapper.get('[data-test="back-to-projects"]').trigger('click')
+    expect(wrapper.find('[data-test="project-list-view"]').exists()).toBe(true)
+  })
+
   it('shows the server module and owner credential actions from permissions', async () => {
     const wrapper = mount(ProjectWorkspace, {
       props: {
@@ -209,6 +230,41 @@ describe('ProjectWorkspace', () => {
       'data-admin': 'true',
       'data-can-write': 'true',
       'data-can-delete': 'true',
+    })
+  })
+
+  it('shows the knowledge module with independent write and review permissions', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      props: {
+        currentUser: {
+          ...currentUser,
+          permissions: [
+            ...currentUser.permissions,
+            'knowledge_article:read',
+            'knowledge_article:write',
+            'knowledge_article:review',
+          ],
+        },
+      },
+      global: {
+        stubs: {
+          KnowledgeArticlePanel: {
+            props: ['projectId', 'currentUserId', 'canWrite', 'canReview'],
+            template: '<div data-test="knowledge-panel" :data-project-id="projectId" :data-user-id="currentUserId" :data-can-write="canWrite" :data-can-review="canReview" />',
+          },
+        },
+      },
+    })
+    await flushPromises()
+    wrapper.findComponent({ name: 'ElTable' }).vm.$emit('current-change', project)
+    await flushPromises()
+    await wrapper.get('[data-test="project-module-knowledge"]').trigger('click')
+
+    expect(wrapper.get('[data-test="knowledge-panel"]').attributes()).toMatchObject({
+      'data-project-id': '7',
+      'data-user-id': '1',
+      'data-can-write': 'true',
+      'data-can-review': 'true',
     })
   })
 })

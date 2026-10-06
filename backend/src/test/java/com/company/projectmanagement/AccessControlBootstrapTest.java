@@ -35,6 +35,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         "app.bootstrap-admin.display-name=初始化测试管理员"
 })
 @Testcontainers
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 class AccessControlBootstrapTest {
 
@@ -82,27 +83,43 @@ class AccessControlBootstrapTest {
                 .containsExactlyInAnyOrder(
                         "ROLE_ADMIN",
                         "audit:read",
+                        "daily_report:confirm",
+                        "daily_report:read",
+                        "daily_report:write",
                         "deployment_asset:read",
                         "deployment_asset:write",
                         "deployment_record:read",
                         "deployment_record:write",
                         "deployment_solution:read",
                         "deployment_solution:write",
+                        "design_asset:read",
+                        "design_asset:write",
                         "environment_fingerprint:read",
                         "environment_fingerprint:write",
                         "file:read",
                         "file:write",
+                        "knowledge_article:read",
+                        "knowledge_article:review",
+                        "knowledge_article:write",
+                        "meeting_record:read",
+                        "meeting_record:write",
                         "project:create",
                         "project:delete",
                         "project:manage_members",
                         "project:read",
                         "project:update",
+                        "project_lifecycle:read",
                         "role:manage",
                         "server:read",
                         "server:write",
                         "server_credential:manage",
                         "server_credential:read",
                         "user:manage",
+                        "vendor_record:read",
+                        "vendor_record:write",
+                        "weekly_report:confirm",
+                        "weekly_report:read",
+                        "weekly_report:write",
                         "work_item:delete",
                         "work_item:read",
                         "work_item:write");

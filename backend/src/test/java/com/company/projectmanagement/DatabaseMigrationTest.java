@@ -21,6 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @SpringBootTest
 @Testcontainers
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class DatabaseMigrationTest {
 
     @Container
@@ -33,7 +34,7 @@ class DatabaseMigrationTest {
 
     /** 验证迁移版本、核心表和密码字段不存在明文设计。 */
     @Test
-    void migratesAnEmptyDatabaseThroughVersionTwelve() {
+    void migratesAnEmptyDatabaseThroughVersionEighteen() {
         List<String> versions = jdbcTemplate.queryForList("""
                 SELECT version
                 FROM flyway_schema_history
@@ -51,7 +52,10 @@ class DatabaseMigrationTest {
                       'server_record', 'server_credential', 'environment_fingerprint',
                       'deployment_solution', 'deployment_solution_step', 'deployment_record',
                       'work_item', 'work_item_status_log', 'work_item_relation',
-                      'work_item_reminder'
+                      'work_item_reminder', 'knowledge_article', 'daily_report',
+                      'daily_report_work_item', 'daily_report_deployment_record',
+                      'weekly_report', 'vendor_record', 'integration_interface',
+                      'meeting_record', 'design_asset', 'daily_report_meeting_record'
                   )
                 ORDER BY table_name
                 """, String.class);
@@ -65,7 +69,7 @@ class DatabaseMigrationTest {
                 """, String.class);
 
         assertThat(versions).containsExactly(
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18");
         assertThat(tables).containsExactlyInAnyOrder(
                 "app_user",
                 "app_role",
@@ -88,7 +92,11 @@ class DatabaseMigrationTest {
                 "work_item",
                 "work_item_status_log",
                 "work_item_relation",
-                "work_item_reminder");
+                "work_item_reminder",
+                "knowledge_article", "daily_report", "daily_report_work_item",
+                "daily_report_deployment_record", "weekly_report", "vendor_record",
+                "integration_interface", "meeting_record", "design_asset",
+                "daily_report_meeting_record");
         assertThat(passwordColumns).containsExactly("password_hash");
         assertThat(jdbcTemplate.queryForList("""
                 SELECT column_name
@@ -124,35 +132,51 @@ class DatabaseMigrationTest {
                 .containsExactly("ADMIN", "IMPLEMENTER", "PROJECT_MANAGER", "TESTER", "VISITOR");
         assertThat(permissions).containsExactly(
                 "audit:read",
+                "daily_report:confirm",
+                "daily_report:read",
+                "daily_report:write",
                 "deployment_asset:read",
                 "deployment_asset:write",
                 "deployment_record:read",
                 "deployment_record:write",
                 "deployment_solution:read",
                 "deployment_solution:write",
+                "design_asset:read",
+                "design_asset:write",
                 "environment_fingerprint:read",
                 "environment_fingerprint:write",
                 "file:read",
                 "file:write",
+                "knowledge_article:read",
+                "knowledge_article:review",
+                "knowledge_article:write",
+                "meeting_record:read",
+                "meeting_record:write",
                 "project:create",
                 "project:delete",
                 "project:manage_members",
                 "project:read",
                 "project:update",
+                "project_lifecycle:read",
                 "role:manage",
                 "server:read",
                 "server:write",
                 "server_credential:manage",
                 "server_credential:read",
                 "user:manage",
+                "vendor_record:read",
+                "vendor_record:write",
+                "weekly_report:confirm",
+                "weekly_report:read",
+                "weekly_report:write",
                 "work_item:delete",
                 "work_item:read",
                 "work_item:write");
         assertThat(permissionCounts).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "ADMIN", 25,
-                "PROJECT_MANAGER", 22,
-                "IMPLEMENTER", 16,
-                "TESTER", 9,
-                "VISITOR", 8));
+                "ADMIN", 41,
+                "PROJECT_MANAGER", 38,
+                "IMPLEMENTER", 29,
+                "TESTER", 21,
+                "VISITOR", 15));
     }
 }
